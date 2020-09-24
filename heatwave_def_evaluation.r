@@ -165,3 +165,90 @@ ggplot(coastal, aes(x=NWS_HI)) +
   geom_density(alpha=.2, fill="#FF6666")+  # Overlay with transparent density plot
   geom_vline(aes(xintercept = mean(NWS_HI, na.rm = T)),
              colour = "red", linetype ="longdash", size = .8)
+
+#################################
+#, by=tmin_95_2_coas +s(dpt,k=3, bs='cr')+s(dif,k=3, bs='cr')
+#### GAM MODEL - COASTAL REGION #############
+m1<- gam(Log_rate_ER_visit ~ s(NWS_HI,k=6, bs='cr')+wDay,
+         family=gaussian,
+         method = "GCV.Cp",
+         data=coastal)
+
+summary(m1)
+m1$aic
+gam.check(m1)
+
+
+m2<- gam(Lg_rate_ER_visit ~ s(NWS_HI,k=6, bs='cr'),
+         family=gaussian,
+         method = "GCV.Cp",
+         data=coastal)
+
+anova(m1, m2, test = "Chisq")
+
+## GAM plot
+plot.gam(m1, pages=1,
+         seWithMean = TRUE,
+         too.far = 0.1,
+         pch =25,
+         cex.lab = 1.5,
+         cex.axis = 1.5,
+         las=1,
+         ylim = c(-1,4),
+         xlab = "Maximum temperature (°F)",
+         ylab = "Residual - Log Rate of ER visits per 100,000",
+         shade = TRUE, shade.col = "gainsboro")
+
+abline(v=90, col="blue")
+abline(v=c(100,104), col=c("blue", "blue"), lty=c(1,2), lwd=c(1, 3))
+
+#Prediction for temperature value
+p1<-data.frame(NWS_HI=seq(70,110, by=1)) #estimates of ER rate from NWS_HI
+x<- predict(m2, p1) #Prediction from m1/m2 model
+x1<- round((exp(x)*1222399)/100000) #calculating the rate of ER visits back to count
+#Enter cost
+x2<- (x1*c) #estimating the $ value based on the count
+
+#saving predictions
+write.csv(coastal, "C:/Users/jagad/Desktop/work/1.csv", row.names = F)
+
+
+################## ANALYSIS _ EXTENSION #####################
+### 10 FOLD CROSS VALIDATION ################################
+
+set.seed(2)
+
+ind <- sample(2, nrow(coastal), replace = TRUE, prob=c(0.9, 0.1))
+trainset = coastal[ind == 1,]
+testset = coastal[ind == 2,]
+
+train_control = trainControl(method = "cv", number = 10)
+
+model<- train(inc ~ tmax,
+              data=trainset,
+              method ="gamSpline",
+              bs='cr', #penalized cubic regression spline
+              k='6',
+              trControl =train_control)
+
+summary(model)
+model$performances
+print(model)
+
+#check prediction for single temperature value
+predict(m1, 90)
+
+#prediction for testset
+testset$pred.inc<- predict(model, testset) #attached predicted incidence
+#, interval = "prediction"
+
+write.csv(testset[c("pred.inc", "inc")],
+          "C:/Users/jagad/Desktop/work/1.csv", 
+          row.names = F) 
+
+##### PRODUCTION Climate scenarios#####
+pre<- read.csv ("C:/Users/jagad/Desktop/work/ped.csv", header = T)
+pre$tmax<- as.numeric((pre$t*1.8)+32) #centigrade to fahrenheit 
+pre$ped.inc<-predict(model,pre)
+write.csv(pre, "C:/Users/jagad/Desktop/work/1.csv", row.names = F)
+
