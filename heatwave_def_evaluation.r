@@ -69,6 +69,7 @@ library(weathermetrics)
 library(ThermIndex)
 library(corrplot)
 library(naniar)
+library(pastecs)
 
 #### CHECK FOR MISSING DATA ####
 vis_miss(coastal) # If more than one variable is missing use option 2/3
@@ -120,11 +121,25 @@ coastal$TDI <- as.numeric(di(coastal$tavg_cel, coastal$RH))
 #for HI comparision
 coastal$NWS_subset <- as.factor(ifelse(coastal$NWS_HI > 100, 1,0))
 
-################## CORRELATION MATRIX ######################
+
+################## Continous variables ######################
 myvars <- c("Avg_temp","Max_temp", "Min_temp", "DTR", "Dewpoint",
-            "RH", "MAT","Steadman_HI", "NWS_HI", "Humidex", "TDI", "Rate_ER_visit", 
-            "Count_ER_visit", "Log_rate_ER_visit", "EHF")
+            "RH", "MAT","Steadman_HI", "NWS_HI", "Humidex", "TDI","EHF",
+            "Count_ER_visit","Rate_ER_visit","Log_rate_ER_visit")
 dat<- coastal[myvars]
+
+#descriptive stats
+desc_stat<- stat.desc(dat, basic = F)
+write.csv(desc_stat,
+          "C:/Users/jagad/Desktop/work/1.csv", 
+          row.names = T)
+
+#categorical variable summary
+y<- (coastal[cat [-c(19,20)]])
+summary(y)
+
+
+################## CORRELATION MATRIX ######################
 M<-cor(dat)
 
 ##################### CORR MATRIX- MATRIX FUNCTION #############
