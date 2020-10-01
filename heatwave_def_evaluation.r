@@ -54,7 +54,7 @@ ehf <- function(tx, tn, t95)
 }
 
 ###########LOAD -COASTAL DATA##########
-coastal <- read.csv ("C:/Users/jagad/Desktop/NC_Sur/NC_Dec2019/coastal_sepf.csv", header = T)
+coastal <- read.csv ("C:/Users/jagad/Desktop/NC_Sur/NC_Dec2019/coastal_octf.csv", header = T)
 
 # COMPUTE EXCESS HEAT FACTOR VARIABLE
 coastal$EHF<- ehf(coastal$tmax, coastal$tmin, t95 = 82.13)
@@ -90,7 +90,9 @@ cat <- c("tavg_95_2_coas","tavg_98_2_coas","tavg_95_3_coas","Tavg_98_3_coas",
          "tavg_90_2_coas","tavg_90_3_coas","tmax_98_3_coas","tmax_98_2_coas",
          "tmax_90_2_coas","tmax_90_3_coas","tmax_95_2_coas","tmax_95_3_coas",
          "tmin_95_3_coas","tmin_98_2_coas","Tmin_98_3_coas",
-         "tmin_90_2_coas","tmin_90_3_coas","tmin_95_2_coas", "dow", "wDay")
+         "tmin_90_2_coas","tmin_90_3_coas","tmin_95_2_coas", "dow", "wDay",
+         "coas_tavg_99_2", "coas_tavg_99_3", "coas_tmax_99_2",
+         "coas_tmax_99_3", "coas_tmin_99_2", "coas_tmin_99_3")
 coastal[cat] <- lapply(coastal[cat], factor)
 
 coastal$Rate_ER_visit <- as.numeric(coastal$imp_rate)
@@ -118,9 +120,18 @@ coastal$Humidex <- as.numeric(humidex(coastal$tavg_cel, coastal$RH))
 #thermal discomfort index
 coastal$TDI <- as.numeric(di(coastal$tavg_cel, coastal$RH))
 
-#for HI comparision
-coastal$NWS_subset <- as.factor(ifelse(coastal$NWS_HI > 100, 1,0))
+#Steadman definitions
+coastal$HI_26 <- as.factor(ifelse(coastal$MAT >= 95.85, 1,0)) #85th pct
+coastal$HI_27 <- as.factor(ifelse(coastal$MAT >= 97.16, 1,0)) #90th pct
+coastal$HI_28 <- as.factor(ifelse(coastal$MAT >= 98.99, 1,0)) #95th pct
 
+# Tan et al HW definition
+coastal$tmax_cel<- as.numeric(tempftoc(coastal$tmax)) #convert F to C
+coastal$HI_17<- as.factor(ifelse(coastal$tmax_cel >= 35, 1,0))
+
+#NWS HW definitions
+coastal$HI_29 <- as.factor(ifelse(coastal$NWS_HI >= 105, 1,0))
+coastal$HI_30 <- as.factor(ifelse(coastal$NWS_HI > 110, 1,0))
 
 ################## Continous variables ######################
 myvars <- c("Avg_temp","Max_temp", "Min_temp", "DTR", "Dewpoint",
