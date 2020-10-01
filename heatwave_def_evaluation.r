@@ -277,3 +277,10 @@ pre<- read.csv ("C:/Users/jagad/Desktop/work/ped.csv", header = T)
 pre$tmax<- as.numeric((pre$t*1.8)+32) #centigrade to fahrenheit 
 pre$ped.inc<-predict(model,pre)
 write.csv(pre, "C:/Users/jagad/Desktop/work/1.csv", row.names = F)
+
+
+############### HW DEFINITION SENSITIVITY TESTING ####################
+
+hw1<- glm.nb(Count_ER_visit~tavg_90_2_coas, data=coastal)
+(est <- cbind(Estimate = coef(hw1), confint(hw1)))
+exp(est)
