@@ -195,7 +195,7 @@ ggplot(coastal, aes(x=NWS_HI)) +
 #################################
 #, by=tmin_95_2_coas +s(dpt,k=3, bs='cr')+s(dif,k=3, bs='cr')
 #### GAM MODEL - COASTAL REGION #############
-m1<- gam(Log_rate_ER_visit ~ s(NWS_HI,k=6, bs='cr')+wDay,
+m1<- gam(Log_rate_ER_visit ~ s(NWS_HI,k=6, bs='cr')+dow,
          family=gaussian,
          method = "GCV.Cp",
          data=coastal)
@@ -205,7 +205,7 @@ m1$aic
 gam.check(m1)
 
 
-m2<- gam(Lg_rate_ER_visit ~ s(NWS_HI,k=6, bs='cr'),
+m2<- gam(Log_rate_ER_visit ~ s(NWS_HI,k=6, bs='cr')+wDay,
          family=gaussian,
          method = "GCV.Cp",
          data=coastal)
