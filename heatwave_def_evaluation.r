@@ -53,6 +53,24 @@ ehf <- function(tx, tn, t95)
   return(ehf)
 }
 
+# FILL DATES B/W START AND END DATE 
+
+
+x<- read.csv("C:\\Users\\jagad\\Desktop\\piedmont_99_HWedf\\Tmin_99_3.csv", header = T)
+
+x$F1<- as.Date(x$ï..F1, format="%m/%d/%Y")
+x$F2<- as.Date(x$F2, format="%m/%d/%Y")
+
+
+lst <- Map(function(x, y) seq(x,y, by = "1 day"), x$F1, x$F2)
+i1 <- rep(1:nrow(x), lengths(lst)) 
+y<- data.frame(x[i1,-3], dates = do.call("c", lst))
+
+
+write.csv(y$dates, "C:\\Users\\jagad\\Desktop\\piedmont_99_HWedf\\attach\\Tmin_99_3.csv",
+          row.names=FALSE)
+
+
 ###########LOAD -COASTAL DATA##########
 coastal <- read.csv ("C:/Users/jagad/Desktop/NC_Sur/NC_Dec2019/coastal_octf.csv", header = T)
 
