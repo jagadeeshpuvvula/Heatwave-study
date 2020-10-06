@@ -304,3 +304,16 @@ hw2<- glm.nb(Rate_ER_visit~tmin_90_2_coas+offset(log(coastal$pop)),
           data=coastal)
 (est <- cbind(Estimate = coef(hw1), confint(hw1)))
 exp(est)
+
+################# ESTIMATING ER visits - Non-anthropogenic emission scenario  ###
+
+testset<- read.csv("C:\\Users\\jagad\\Desktop\\NC_Sur\\Nautal_scenario\\Nat_final\\X.csv", header=T)
+
+testset$date <- as.Date(testset$ï..Date, format = "%m/%d/%Y")
+testset$dow <- as.factor (wday(as.Date(testset$date, format = "%m/%d/%Y")))
+testset$Max_temp<- as.numeric(testset$tmax)
+testset$NWS_HI<- heat.index.algorithm(t=testset$Max_temp, rh=testset$RH)
+
+testset$tmax_preder_vis<-predict(m1, testset)
+testset$NWSHI_preder_vis<-predict(m2, testset)
+write.csv(testset, "C:/Users/jagad/Desktop/NC_Sur/Nautal_scenario/Nat_final/piedmont_predictions_nat_sce", row.names = F)
