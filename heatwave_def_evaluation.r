@@ -214,7 +214,8 @@ ggplot(coastal, aes(x=NWS_HI)) +
 #################################
 #, by=tmin_95_2_coas +s(dpt,k=3, bs='cr')+s(dif,k=3, bs='cr')
 #### GAM MODEL - COASTAL REGION #############
-m1<- gam(Log_rate_ER_visit ~ s(NWS_HI,k=6, bs='cr')+dow,
+#Add day of week; month of year and year as factors in the model
+m1<- gam(Log_rate_ER_visit ~ s(NWS_HI,k=6, bs='cr')+dow+month+year,
          family=gaussian,
          method = "GCV.Cp",
          data=coastal)
@@ -222,7 +223,7 @@ m1<- gam(Log_rate_ER_visit ~ s(NWS_HI,k=6, bs='cr')+dow,
 summary(m1)
 m1$aic
 gam.check(m1)
-
+RMSE_m1<- sqrt(mean(residuals.gam(m1,type="response")^2))
 
 m2<- gam(Log_rate_ER_visit ~ s(NWS_HI,k=6, bs='cr')+wDay,
          family=gaussian,
