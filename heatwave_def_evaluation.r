@@ -250,7 +250,7 @@ abline(v=c(100,104), col=c("blue", "blue"), lty=c(1,2), lwd=c(1, 3))
 
 #Prediction for temperature value
 p1<-data.frame(NWS_HI=seq(70,110, by=1)) #estimates of ER rate from NWS_HI
-x<- predict(m2, p1) #Prediction from m1/m2 model
+x<- predict(m2, p1, interval = "confidence", level = 0.95) #Prediction from m1/m2 model
 x1<- round((exp(x)*1222399)/100000) #calculating the rate of ER visits back to count
 #Enter cost
 x2<- (x1*c) #estimating the $ value based on the count
