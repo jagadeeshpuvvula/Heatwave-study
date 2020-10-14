@@ -56,7 +56,8 @@ ehf <- function(tx, tn, t95)
 # FILL DATES B/W START AND END DATE 
 
 
-x<- read.csv("C:\\Users\\jagad\\Desktop\\piedmont_99_HWedf\\Tmin_99_3.csv", header = T)
+x<- read.csv("C:/Users/jagad/Desktop/NC_Sur/NC_Dec2019/coastal_octf.csv", header = T,
+                     fileEncoding="UTF-8-BOM")
 
 x$F1<- as.Date(x$ï..F1, format="%m/%d/%Y")
 x$F2<- as.Date(x$F2, format="%m/%d/%Y")
