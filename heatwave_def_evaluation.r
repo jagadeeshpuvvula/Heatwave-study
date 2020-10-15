@@ -211,6 +211,15 @@ ggplot(coastal, aes(x=NWS_HI)) +
   geom_vline(aes(xintercept = mean(NWS_HI, na.rm = T)),
              colour = "red", linetype ="longdash", size = .8)
 
+#Estimating rate of ER visits by year
+y1<- aggregate(coastal$imp_count, by=list(Category=coastal$year), FUN=sum)
+y2<- (y1$x/1222399)*100000
+
+#	population
+#Coastal	1222399
+#Mountain	2741101
+#Piedmont	5571983
+
 #################################
 #, by=tmin_95_2_coas +s(dpt,k=3, bs='cr')+s(dif,k=3, bs='cr')
 #### GAM MODEL - COASTAL REGION #############
