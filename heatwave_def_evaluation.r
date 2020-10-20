@@ -311,7 +311,7 @@ write.csv(pre, "C:/Users/jagad/Desktop/work/1.csv", row.names = F)
 ############### HW DEFINITION SENSITIVITY TESTING ####################
 coastal$pop<- as.numeric(1222399)
 
-hw2<- glm.nb(Rate_ER_visit~tmin_90_2_coas+offset(log(coastal$pop)),
+hw2<- glm.nb(imp_count~tmin_90_2_coas+offset(log(coastal$pop)),
           data=coastal)
 (est <- cbind(Estimate = coef(hw1), confint(hw1)))
 exp(est)
