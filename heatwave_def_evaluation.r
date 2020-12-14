@@ -213,8 +213,8 @@ y1<- aggregate(coastal$imp_count, by=list(Category=coastal$year), FUN=sum)
 y2<- (y1$x/1222399)*100000
 
 #	population
-#Coastal	1222399
-#Mountain	2741101
+#Coastal	2741101
+#Mountain	
 #Piedmont	5571983
 
 #################################
