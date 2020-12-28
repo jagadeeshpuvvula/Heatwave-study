@@ -89,7 +89,7 @@ library(ThermIndex)
 library(corrplot)
 library(naniar)
 library(pastecs)
-
+library(MASS)
 #### CHECK FOR MISSING DATA ####
 vis_miss(coastal) # If more than one variable is missing use option 2/3
 #gg_miss_upset(coastal) #option -2
@@ -100,6 +100,8 @@ coastal[is.na(coastal)] <- 0
 
 ###### DATA FORMATTING ######################
 coastal$date <- as.Date(coastal$date, format = "%m/%d/%Y")
+coastal$month<- as.factor(month(coastal$date))
+coastal$year<- as.factor(format(coastal$date, '%Y'))
 coastal$dow <- wday(as.Date(coastal$date, format = "%m/%d/%Y"))
 weekdays1 <- c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')
 coastal$wDay <- factor((weekdays(coastal$date) %in% weekdays1), 
@@ -121,7 +123,7 @@ coastal$Max_temp <- as.numeric(coastal$tmax)
 coastal$Min_temp <- as.numeric(coastal$tmin)
 coastal$Avg_temp <- as.numeric(coastal$tavg)
 coastal$DTR <- as.numeric(coastal$tmax - coastal$tmin)
-coastal$MAT<- as.numeric(coastal$Ã¯..app_temp)
+coastal$MAT<- as.numeric(coastal$ï..app_temp)
 coastal$Dewpoint<- as.numeric(coastal$dewpoint)
 
 ##### COMPUTING ADDITIONAL VARIABLES ######
@@ -246,8 +248,8 @@ plot.gam(m1, pages=1,
          cex.lab = 1.5,
          cex.axis = 1.5,
          las=1,
-         ylim = c(-1,4),
-         xlab = "Maximum temperature (Â°F)",
+         ylim = c(-1.5,2.5),
+         xlab = "Maximum temperature (°F)",
          ylab = "Residual - Log Rate of ER visits per 100,000",
          shade = TRUE, shade.col = "gainsboro")
 
@@ -306,11 +308,11 @@ write.csv(pre, "C:/Users/jagad/Desktop/work/1.csv", row.names = F)
 
 
 ############### HW DEFINITION SENSITIVITY TESTING ####################
-coastal$pop<- as.numeric(1222399)
+coastal$pop<- as.numeric(2741101)
 
 hw2<- glm.nb(imp_count~tmin_90_2_coas+offset(log(coastal$pop)),
           data=coastal)
-(est <- cbind(Estimate = coef(hw1), confint(hw1)))
+(est <- cbind(Estimate = coef(hw2), confint(hw2)))
 exp(est)
 
 ################# ESTIMATING ER visits - Non-anthropogenic emission scenario  ###
