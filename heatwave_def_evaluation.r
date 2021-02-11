@@ -123,7 +123,7 @@ coastal$Max_temp <- as.numeric(coastal$tmax)
 coastal$Min_temp <- as.numeric(coastal$tmin)
 coastal$Avg_temp <- as.numeric(coastal$tavg)
 coastal$DTR <- as.numeric(coastal$tmax - coastal$tmin)
-coastal$MAT<- as.numeric(coastal$ï..app_temp)
+coastal$MAT<- as.numeric(coastal$ï¿½..app_temp)
 coastal$Dewpoint<- as.numeric(coastal$dewpoint)
 
 ##### COMPUTING ADDITIONAL VARIABLES ######
@@ -249,7 +249,7 @@ plot.gam(m1, pages=1,
          cex.axis = 1.5,
          las=1,
          ylim = c(-1.5,2.5),
-         xlab = "Maximum temperature (°F)",
+         xlab = "Maximum temperature (ï¿½F)",
          ylab = "Residual - Log Rate of ER visits per 100,000",
          shade = TRUE, shade.col = "gainsboro")
 
