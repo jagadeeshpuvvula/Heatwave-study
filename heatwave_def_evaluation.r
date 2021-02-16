@@ -80,7 +80,7 @@ coastal$EHF<- ehf(coastal$tmax, coastal$tmin, t95 = 82.13)
 
 ### LOAD REQUIRED LIBS ######################
 library(dplyr)
-library(mgcv)
+
 library(ggplot2)
 library(lubridate)
 library(caret)
