@@ -152,9 +152,9 @@ coastal$HI_29 <- as.factor(ifelse(coastal$NWS_HI >= 105, 1,0))
 coastal$HI_30 <- as.factor(ifelse(coastal$NWS_HI > 110, 1,0))
 
 ################## Continous variables ######################
-myvars <- c("Avg_temp","Max_temp", "Min_temp", "DTR", "Dewpoint",
-            "RH", "MAT","Steadman_HI", "NWS_HI", "Humidex", "TDI","EHF",
-            "Count_ER_visit","Rate_ER_visit","Log_rate_ER_visit")
+myvars <- c("Rate_ER_visit","Count_ER_visit","Max_temp","Min_temp",
+            "Avg_temp","DTR","Dewpoint","RH","MAT","Steadman_HI",
+            "NWS_HI","Humidex","TDI","EHF")
 dat<- coastal[myvars]
 
 #descriptive stats
@@ -193,11 +193,11 @@ head(p.mat[, 1:15])
 #Correlation matrix
 col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
 corrplot(M, method="color", col=col(200),  
-         type="upper", order="hclust", 
+         type="upper", order="original", addrect = 2,
          addCoef.col = "black", # Add coefficient of correlation
          tl.col="black", tl.srt=45, #Text label color and rotation
          # Combine with significance
-         p.mat = p.mat, sig.level = 0.01, insig = "blank", 
+         p.mat = p.mat, sig.level = 0.05, insig = "pch", 
          # hide correlation coefficient on the principal diagonal
          diag=FALSE)
 
