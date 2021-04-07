@@ -71,16 +71,18 @@ y<- data.frame(x[i1,-3], dates = do.call("c", lst))
 write.csv(y$dates, "C:\\Users\\jagad\\Desktop\\piedmont_99_HWedf\\attach\\Tmin_99_3.csv",
           row.names=FALSE)
 
-
+#####################################################
+#####################################################
 ###########LOAD -COASTAL DATA##########
-coastal <- read.csv ("C:/Users/jagad/Desktop/NC_Sur/NC_Dec2019/coastal_octf.csv", header = T)
+coastal <- read.csv ("C:/Users/jagad/Desktop/NC_Sur/NC_Dec2019/coastal_octf.csv", header = T,
+                     fileEncoding="UTF-8-BOM")
 
 # COMPUTE EXCESS HEAT FACTOR VARIABLE
 coastal$EHF<- ehf(coastal$tmax, coastal$tmin, t95 = 82.13)
 
 ### LOAD REQUIRED LIBS ######################
 library(dplyr)
-
+library(mgcv)
 library(ggplot2)
 library(lubridate)
 library(caret)
@@ -88,8 +90,18 @@ library(weathermetrics)
 library(ThermIndex)
 library(corrplot)
 library(naniar)
-library(pastecs)
 library(MASS)
+library(rcompanion)
+library(dlnm)
+library(splines)
+library(reshape2)
+library(reshape2)
+library(extrafont)
+library(scales)   # to access breaks/formatting functions
+library(gridExtra) # for arranging plots
+library(grid)   # for arranging plots
+loadfonts(device = "win")
+
 #### CHECK FOR MISSING DATA ####
 vis_miss(coastal) # If more than one variable is missing use option 2/3
 #gg_miss_upset(coastal) #option -2
@@ -151,6 +163,8 @@ coastal$HI_17<- as.factor(ifelse(coastal$tmax_cel >= 35, 1,0))
 coastal$HI_29 <- as.factor(ifelse(coastal$NWS_HI >= 105, 1,0))
 coastal$HI_30 <- as.factor(ifelse(coastal$NWS_HI > 110, 1,0))
 
+
+#REGRESSION COEFFICIENT
 ################## Continous variables ######################
 myvars <- c("Rate_ER_visit","Count_ER_visit","Max_temp","Min_temp",
             "Avg_temp","DTR","Dewpoint","RH","MAT","Steadman_HI",
@@ -167,6 +181,14 @@ write.csv(desc_stat,
 y<- (coastal[cat [-c(19,20)]])
 summary(y)
 
+#Estimating rate of ER visits by year
+y1<- aggregate(coastal$imp_count, by=list(Category=coastal$year), FUN=sum)
+y2<- (y1$x/1222399)*100000
+
+#	population
+#Coastal	2741101
+#Mountain	
+#Piedmont	5571983
 
 ################## CORRELATION MATRIX ######################
 M<-cor(dat)
@@ -210,15 +232,6 @@ ggplot(coastal, aes(x=NWS_HI)) +
   geom_vline(aes(xintercept = mean(NWS_HI, na.rm = T)),
              colour = "red", linetype ="longdash", size = .8)
 
-#Estimating rate of ER visits by year
-y1<- aggregate(coastal$imp_count, by=list(Category=coastal$year), FUN=sum)
-y2<- (y1$x/1222399)*100000
-
-#	population
-#Coastal	2741101
-#Mountain	
-#Piedmont	5571983
-
 #################################
 #, by=tmin_95_2_coas +s(dpt,k=3, bs='cr')+s(dif,k=3, bs='cr')
 #### GAM MODEL - COASTAL REGION #############
@@ -232,6 +245,9 @@ summary(m1)
 m1$aic
 gam.check(m1)
 RMSE_m1<- sqrt(mean(residuals.gam(m1,type="response")^2))
+
+#computing RMSE values for model
+accuracy(list(m1, m2), plotit=TRUE, digits=3)
 
 m2<- gam(imp_rate ~ s(Max_temp,k=5, bs='cr')+dow+month+year,
          family=Gamma(link = log),
@@ -260,86 +276,22 @@ abline(v=c(100,104), col=c("blue", "blue"), lty=c(1,2), lwd=c(1, 3))
 p1<-data.frame(NWS_HI=seq(70,110, by=1)) #estimates of ER rate from NWS_HI
 x<- predict(m2, p1, interval = "confidence", level = 0.95) #Prediction from m1/m2 model
 x1<- round((exp(x)*1222399)/100000) #calculating the rate of ER visits back to count
-#Enter cost
-x2<- (x1*c) #estimating the $ value based on the count
-
 #saving predictions
 write.csv(coastal, "C:/Users/jagad/Desktop/work/1.csv", row.names = F)
 
-
-################## ANALYSIS _ EXTENSION #####################
-### 10 FOLD CROSS VALIDATION ################################
-
-set.seed(2)
-
-ind <- sample(2, nrow(coastal), replace = TRUE, prob=c(0.9, 0.1))
-trainset = coastal[ind == 1,]
-testset = coastal[ind == 2,]
-
-train_control = trainControl(method = "cv", number = 10)
-
-model<- train(inc ~ tmax,
-              data=trainset,
-              method ="gamSpline",
-              bs='cr', #penalized cubic regression spline
-              k='6',
-              trControl =train_control)
-
-summary(model)
-model$performances
-print(model)
-
-#check prediction for single temperature value
-predict(m1, 90)
-
-#prediction for testset
-testset$pred.inc<- predict(model, testset) #attached predicted incidence
-#, interval = "prediction"
-
-write.csv(testset[c("pred.inc", "inc")],
-          "C:/Users/jagad/Desktop/work/1.csv", 
-          row.names = F) 
-
-##### PRODUCTION Climate scenarios#####
-pre<- read.csv ("C:/Users/jagad/Desktop/work/ped.csv", header = T)
-pre$tmax<- as.numeric((pre$t*1.8)+32) #centigrade to fahrenheit 
-pre$ped.inc<-predict(model,pre)
-write.csv(pre, "C:/Users/jagad/Desktop/work/1.csv", row.names = F)
-
-
-############### HW DEFINITION SENSITIVITY TESTING ####################
-coastal$pop<- as.numeric(2741101)
-
-hw2<- glm.nb(imp_count~tmin_90_2_coas+offset(log(coastal$pop)),
-          data=coastal)
-(est <- cbind(Estimate = coef(hw2), confint(hw2)))
-exp(est)
-
-################# ESTIMATING ER visits - Non-anthropogenic emission scenario  ###
-
-testset<- read.csv("C:\\Users\\jagad\\Desktop\\NC_Sur\\Nautal_scenario\\Nat_final\\X.csv", header=T)
-
-testset$date <- as.Date(testset$ï..Date, format = "%m/%d/%Y")
-testset$dow <- as.factor (wday(as.Date(testset$date, format = "%m/%d/%Y")))
-testset$Max_temp<- as.numeric(testset$tmax)
-testset$NWS_HI<- heat.index.algorithm(t=testset$Max_temp, rh=testset$RH)
-
-testset$tmax_preder_vis<-predict(m1, testset)
-testset$NWSHI_preder_vis<-predict(m2, testset)
-write.csv(testset, "C:/Users/jagad/Desktop/NC_Sur/Nautal_scenario/Nat_final/piedmont_predictions_nat_sce", row.names = F)
-
-#### facet plot - max temperature by climate scenario
-library(ggplot2)
-library(reshape2)
-library(extrafont)
-library(dplyr)
-loadfonts(device = "win")
-#library(gridExtra)
-x<- read.csv("C:\\Users\\jagad\\Desktop\\NC_manus\\future_clim_dat\\coas_densityplt.csv", header = T,
-             fileEncoding="UTF-8-BOM")
+#future RCP prediction (FOR PAPER 1)
+x<- read.csv("C:/Users/jagad/Desktop/NC_manus/future_clim_dat/coas_densityplt.csv",
+             header = T,fileEncoding="UTF-8-BOM")
 x$Daily_Maximum_Temperature<- ((x$Tmax *(9/5))+32)
+
+#correlation b/w CCSM4 and GFDL
+x<- read.csv("C:\\Users\\jagad\\Desktop\\NC_manus\\future_clim_dat\\pied.csv", header = T,
+             fileEncoding="UTF-8-BOM")
+cor(x$ccsm4_45_tasmax_1116, x$gfdl_45_tasmax_1116, method = "pearson")
+
 x$RCP<-as.factor(x$RCP)
 
+#### TEMPERATURE DENSITY PLOT BY MODEL EMISSION SCENARIO
 ggplot(x, aes(x=Daily_Maximum_Temperature, colour=RCP))+ geom_density()+
   facet_grid(Model~Time.period)+
   ggtitle("Projected maximum temperature - Coastal")+
@@ -348,36 +300,44 @@ ggplot(x, aes(x=Daily_Maximum_Temperature, colour=RCP))+ geom_density()+
   theme(legend.position = 'bottom')+
   theme(text=element_text(size=16,  family="Arial Black"))
 
+###PREDICTED HRI ER VISITS FOR FUTURE TEMPERATUE DATA
+x$pred_ER<-exp(predict(m1, x))
+write.csv(x, "C:/Users/jagad/Desktop/NC_manus/future_clim_dat/coas_densityplt_pred.csv")
 
-### facet plot - HRI ER  by climate scenario
-x<- read.csv("C:\\Users\\jagad\\Desktop\\NC_manus\\future_clim_dat\\coas_densityplt_pred.csv", header = T,
+###HRI ER VISIT PREDICTION PLOTS
+x<- read.csv("C:\\Users\\jagad\\Desktop\\NC_manus\\future_clim_dat\\pied_densityplt_pred.csv", header = T,
              fileEncoding="UTF-8-BOM")
-library(lubridate) # for working with dates
-library(ggplot2)  # for creating graphs
-library(scales)   # to access breaks/formatting functions
-library(gridExtra) # for arranging plots
-library(grid)   # for arranging plots
-library(dplyr)  # for subsetting by season
 x$RCP<-as.factor(x$RCP)
 x$date<- as.Date(x$date, "%m/%d/%y")
 
+##Time series pred ER visits by RCP
 plt<-ggplot(x, aes(date, pred_ER, group=RCP)) +
   geom_line(aes(color=RCP)) +
   facet_grid(Model~Time.period)+
   ggtitle("HRI ER Visits during climate change - Coastal")+
   labs(x="Date by time period", y="Estimated HRI ER visits (per 100,000)")+
+  theme(axis.text.x = element_text(angle = 45))+
   theme(plot.title = element_text(hjust = 0.5))+
   scale_color_manual(values=c('blue','firebrick1'))+
   theme(legend.position = 'bottom')+
   theme(text=element_text(size=16,  family="Arial Black"))
 
-plt
+### Boxplot  - Pred ER visits by timeframe
+levels(x$RCP) <- c("RCP 4.5","RCP 8.5")
 
-##### GFDL CCSM correlation ####
-x<- read.csv("C:\\Users\\jagad\\Desktop\\NC_manus\\future_clim_dat\\pied.csv", header = T,
-             fileEncoding="UTF-8-BOM")
-cor(x$ccsm4_45_tasmax_1116, x$gfdl_45_tasmax_1116, method = "pearson")
-
+plt<-ggplot(x, aes(Time.period, pred_ER, group=Time.period)) +
+  geom_boxplot(varwidth = TRUE, alpha=0.2, aes(fill=Time.period))+
+  facet_grid(~RCP+Model, scales="fixed")+
+  ggtitle("HRI ER Visits during climate change - Piedmont")+
+  labs(x="", y="Estimated HRI ER visits (per 100,000)")+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())+
+  theme(legend.position = "bottom")+
+  theme(plot.title = element_text(hjust = 0))+
+  theme(text=element_text(size=20,  family="Arial Black"))+
+  theme(axis.text = element_text(size = 20, family="Arial Black"))+
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"))
 
 ##############################################
 ##############################################
@@ -446,4 +406,82 @@ plot(pred3.temp, "slices", var=c(85,95), lag=c(0,5), col=4,
 plot(pred3.temp, "slices", var=95, ci="bars", type="p", col=2, pch=19,
      ci.level=0.95, main="Lag-response a 10-unit increase above threshold (95CI)")
 
+
+################## ANALYSIS _ EXTENSION #####################
+### 10 FOLD CROSS VALIDATION ################################
+#(NOT INCLUDED IN ANY PAPER)
+set.seed(2)
+ind <- sample(2, nrow(coastal), replace = TRUE, prob=c(0.9, 0.1))
+trainset = coastal[ind == 1,]
+testset = coastal[ind == 2,]
+train_control = trainControl(method = "cv", number = 10)
+
+model<- train(inc ~ tmax,
+              data=trainset,
+              method ="gamSpline",
+              bs='cr', #penalized cubic regression spline
+              k='6',
+              trControl =train_control)
+
+summary(model)
+model$performances
+print(model)
+
+#check prediction for single temperature value
+predict(m1, 90)
+
+#prediction for testset
+testset$pred.inc<- predict(model, testset) #attached predicted incidence
+#, interval = "prediction"
+
+write.csv(testset[c("pred.inc", "inc")],
+          "C:/Users/jagad/Desktop/work/1.csv", 
+          row.names = F) 
+
+##### PRODUCTION Climate scenarios#####
+pre<- read.csv ("C:/Users/jagad/Desktop/work/ped.csv", header = T)
+pre$tmax<- as.numeric((pre$t*1.8)+32) #centigrade to fahrenheit 
+pre$ped.inc<-predict(model,pre)
+write.csv(pre, "C:/Users/jagad/Desktop/work/1.csv", row.names = F)
+
+
+############### HW DEFINITION SENSITIVITY TESTING ####################
+#PAPER 2
+###################
+
+#	population
+#Coastal	2741101
+#Mountain	
+#Piedmont	5571983
+
+coastal$pop<- as.numeric(2741101)
+
+hw2<- glm.nb(imp_count~tmin_90_2_coas+offset(log(coastal$pop)),
+          data=coastal)
+(est <- cbind(Estimate = coef(hw2), confint(hw2)))
+exp(est)
+
+################# ESTIMATING ER visits - Non-anthropogenic emission scenario  ###
+#Paper 3
+
 # ==================================================================================
+########################################################################
+#######################################################################
+#NATURAL SIMULATION PREDICTIONS
+testset<- read.csv("C:\\Users\\jagad\\Desktop\\NC_Sur\\Nautal_scenario\\coas_Nat_act.csv", header = T,
+                   fileEncoding="UTF-8-BOM")
+testset$date <- as.Date(testset$Date, format = "%m/%d/%Y")
+testset$month<- as.factor(month(testset$date))
+testset$year<- as.factor(format(testset$date, '%Y'))
+testset$dow <- as.factor (wday(as.Date(testset$date, format = "%m/%d/%Y")))
+testset$Max_temp<- as.numeric(testset$tmax_nat)
+#testset$NWS_HI<- heat.index.algorithm(t=testset$Max_temp, rh=testset$RH)
+testset$tmax_preder_vis<-exp(predict(m1, testset, interval = "confidence", level = 0.95))
+#testset$NWSHI_preder_vis<-predict(m2, testset)
+#testset$tmax_pred_exp<- as.numeric(exp(testset$tmax_preder_vis))
+testset$tmax_pred_count<- as.numeric(((testset$tmax_pred_exp)*2741101)/100000)
+
+
+#for plot testing
+p + geom_line(aes(y = lwr), color = "red", linetype = "dashed")+
+    geom_line(aes(y = upr), color = "red", linetype = "dashed")
