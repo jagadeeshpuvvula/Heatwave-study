@@ -249,12 +249,12 @@ RMSE_m1<- sqrt(mean(residuals.gam(m1,type="response")^2))
 #computing RMSE values for model
 accuracy(list(m1, m2), plotit=TRUE, digits=3)
 
-m2<- gam(imp_rate ~ s(Max_temp,k=5, bs='cr')+dow+month+year,
+#m2<- gam(imp_rate ~ s(Max_temp,k=5, bs='cr')+dow+month+year,
          family=Gamma(link = log),
          method = "GCV.Cp",
          data=coastal)
 
-anova(m1, m2, test = "Chisq")
+#anova(m1, m2, test = "Chisq")
 
 ## GAM plot
 plot.gam(m1, pages=1,
@@ -345,10 +345,6 @@ plt<-ggplot(x, aes(Time.period, pred_ER, group=Time.period)) +
 ##############################################
 ##############################################
 
-library(dlnm)
-library(splines)
-library(lubridate)
-library(mgcv)
 #=================================================================================
 #coastal
 dat <- read.csv ("C:/Users/jagad/Desktop/NC_Sur/NC_Dec2019/dat_octf.csv", header = T,
@@ -468,20 +464,41 @@ exp(est)
 ########################################################################
 #######################################################################
 #NATURAL SIMULATION PREDICTIONS
-testset<- read.csv("C:\\Users\\jagad\\Desktop\\NC_Sur\\Nautal_scenario\\coas_Nat_act.csv", header = T,
+testset<- read.csv("C:\\Users\\jagad\\Desktop\\NC_manus\\Natural_simulation\\coastal.csv", header = T,
                    fileEncoding="UTF-8-BOM")
+
 testset$date <- as.Date(testset$Date, format = "%m/%d/%Y")
 testset$month<- as.factor(month(testset$date))
 testset$year<- as.factor(format(testset$date, '%Y'))
 testset$dow <- as.factor (wday(as.Date(testset$date, format = "%m/%d/%Y")))
-testset$Max_temp<- as.numeric(testset$tmax_nat)
-#testset$NWS_HI<- heat.index.algorithm(t=testset$Max_temp, rh=testset$RH)
-testset$tmax_preder_vis<-exp(predict(m1, testset, interval = "confidence", level = 0.95))
-#testset$NWSHI_preder_vis<-predict(m2, testset)
-#testset$tmax_pred_exp<- as.numeric(exp(testset$tmax_preder_vis))
-testset$tmax_pred_count<- as.numeric(((testset$tmax_pred_exp)*2741101)/100000)
+testset$Category<- as.factor(testset$Category)
 
+#Density plot Natural Vs. Observed maximum temperature
+ggplot(testset, aes(x=Temp, colour=Category))+ geom_density()+
+    facet_grid(~year)+
+    ggtitle("Observed Vs. Natural simulation - Coastal")+
+    theme(plot.title = element_text(hjust = 0.5))+
+    scale_color_manual(values=c('blue','firebrick1'))+
+    theme(legend.position = 'bottom')+
+    labs(x="Maximum temperature (F)", y="Density")+
+    theme(text=element_text(size=16,  family="Arial Black"))
 
-#for plot testing
-p + geom_line(aes(y = lwr), color = "red", linetype = "dashed")+
-    geom_line(aes(y = upr), color = "red", linetype = "dashed")
+#Filter natural simulation for HRI ER visit Predictions
+t1<- filter(testset, Category == "Natural_simulation")
+t1$Max_temp<- as.numeric(t1$Temp)
+t1$HRI_ER_Rate_pred<-exp(predict(m1, t1))
+t1$HRI_ER_Count<- round(as.numeric(((t1$HRI_ER_Rate_pred)*2741101)/100000))
+
+#Export predictions and match with observed
+#Encounted a problem to join data by date variable, so opted for manual join with Tableau
+#using t2<- <- left_join(t1,  coastal, by = date)
+write.csv(t1, "C:\\Users\\jagad\\Desktop\\NC_manus\\Natural_simulation\\coastal_pred.csv", row.names = F)
+
+#Final formatted predictions
+#C:\Users\jagad\Desktop\NC_manus\Natural_simulation\coastal_final.csv
+
+#Figure 2 generated using tableau
+
+t3<- read.csv("C:\\Users\\jagad\\Desktop\\NC_manus\\Natural_simulation\\coastal_final.csv", header = T,fileEncoding="UTF-8-BOM")
+(0.19*2741101)/100000
+
