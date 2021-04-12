@@ -502,3 +502,27 @@ write.csv(t1, "C:\\Users\\jagad\\Desktop\\NC_manus\\Natural_simulation\\coastal_
 t3<- read.csv("C:\\Users\\jagad\\Desktop\\NC_manus\\Natural_simulation\\coastal_final.csv", header = T,fileEncoding="UTF-8-BOM")
 (0.19*2741101)/100000
 
+################# Attributable HRI ER visit risk by region - final figure
+library(lubridate)
+library(ggplot2)
+
+testset<- read.csv("C:\\Users\\jagad\\Desktop\\NC_manus\\Natural_simulation\\Coastal_tableau_fig.csv", header = T,fileEncoding="UTF-8-BOM")
+testset$date <- as.Date(testset$Date, format = "%m/%d/%Y")
+testset$year<- as.factor(format(testset$date, '%Y'))
+testset$month<- as.factor(month(testset$date))
+levels(testset$month) <- c("May","Jun", "Jul", "Aug", "Sep")
+
+
+plt<-ggplot(testset, aes(month, Anomaly, group=month)) +
+  geom_boxplot(varwidth = TRUE, alpha=0.2, aes(fill=month))+
+  facet_grid(~year, scales="fixed")+
+  ggtitle("Attributable HRI ER visit risk - Coastal")+
+  labs(x="", y="Estimated Rate HRI ER visits (per 100,000)")+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())+
+  theme(legend.position = "bottom")+
+  theme(plot.title = element_text(hjust = 0))+
+  theme(text=element_text(size=20,  family="Arial Black"))+
+  theme(axis.text = element_text(size = 20, family="Arial Black"))+
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442"))
