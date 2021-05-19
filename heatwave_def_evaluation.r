@@ -457,6 +457,34 @@ hw2<- glm.nb(imp_count~tmin_90_2_coas+offset(log(coastal$pop)),
 (est <- cbind(Estimate = coef(hw2), confint(hw2)))
 exp(est)
 
+
+#paper 2 - main plot
+################################################################3
+res<-read.csv("C:\\Users\\jagad\\Desktop\\NC_manus\\heatwave_tbl.csv",
+              header=T, fileEncoding="UTF-8-BOM")
+
+library(ggplot2)
+cbbPalette <- c("#000000", "#999999")
+
+ggplot(res, aes(x = Heat_wave_definition, y = or, ymin = lcl, ymax = ucl)) + 
+  geom_pointrange(aes(col = factor(Region)), 
+                  position=position_dodge(width=0.8),size = 1) + 
+  ylab("Incidence rate ratio [95% CI]") +
+  geom_hline(aes(yintercept = 1)) + 
+  scale_colour_manual(values=cbbPalette) + 
+  ggtitle("Sensitivity of heat wave definitions")+
+  xlab("Heat wave definitions")+
+  theme(legend.position = "bottom")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  theme(text=element_text(size=15,  family="Arial Black"))+
+  theme(axis.text = element_text(size = 15, family="Arial Black"))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  scale_y_continuous(breaks = seq(0, 7, 1),limits=c(0, 7))+
+  theme(panel.border = element_blank(),panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())+
+  annotate("rect", xmin = 16.5, xmax = 17.5, ymin = 0, ymax = 7,
+           alpha = .1,fill = "blue")
+
 ################# ESTIMATING ER visits - Non-anthropogenic emission scenario  ###
 #Paper 3
 
