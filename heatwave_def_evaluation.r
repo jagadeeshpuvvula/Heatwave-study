@@ -572,6 +572,16 @@ x$HW_cos<- ifelse(x$coas_tmax>= 95, 1, 0)
 x$HW_pied<- ifelse(x$pied_tmax>=95, 1, 0)
 cor(x$HW_cos, x$HW_pied, method = "pearson")
 
+#Matched/paired t-test
+table(x$HW_cos, x$HW_pied) #2 by 2 table
+prop.table(table(x$HW_cos, x$HW_pied),margin = 2)*100 #proportion table
+mcnemar.test(x$HW_cos, x$HW_pied) # McNemar test (for binary data)
+#t.test(x$HW_cos, x$HW_pied, paired = TRUE, alternative = "two.sided") #paired t test
+
 #correlation between heatwave definition 17 and NWS database
 x<- read_csv("C:/Users/jagad/Desktop/pied_cor.csv")
 cor(x$hw_17, x$nws_hi, method = "pearson", use = "complete.obs")
+prop.table(table(x$hw_17, x$nws_hi),margin = 1)*100 #margin =2 for column percentages
+mcnemar.test(x$hw_17, x$nws_hi)
+
+
