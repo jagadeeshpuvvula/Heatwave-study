@@ -54,17 +54,15 @@ ehf <- function(tx, tn, t95)
 }
 
 ###########LOAD -COASTAL DATA##########
-coastal <- read.csv ("C:/Users/jagad/Desktop/NC_Sur/NC_Dec2019/coastal_octf.csv", header = T,
-                     fileEncoding="UTF-8-BOM")
+coastal <- read_csv ("/work/jessebell/puvvula/coastal_octf.csv")
 
 
 # COMPUTE EXCESS HEAT FACTOR VARIABLE
 coastal$EHF<- ehf(coastal$tmax, coastal$tmin, t95 = 82.13)
 
 ### LOAD REQUIRED LIBS ######################
-library(dplyr)
+library(tidyverse)
 library(mgcv)
-library(ggplot2)
 library(lubridate)
 library(caret)
 library(weathermetrics)
@@ -90,112 +88,11 @@ coastal$dow <- wday(as.Date(coastal$date, format = "%m/%d/%Y"))
 weekdays1 <- c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')
 coastal$wDay <- factor((weekdays(coastal$date) %in% weekdays1), 
                        levels=c(FALSE, TRUE), labels=c('weekend', 'weekday'))
-
-cat <- c("tavg_95_2_coas","tavg_98_2_coas","tavg_95_3_coas","Tavg_98_3_coas",
-         "tavg_90_2_coas","tavg_90_3_coas","tmax_98_3_coas","tmax_98_2_coas",
-         "tmax_90_2_coas","tmax_90_3_coas","tmax_95_2_coas","tmax_95_3_coas",
-         "tmin_95_3_coas","tmin_98_2_coas","Tmin_98_3_coas",
-         "tmin_90_2_coas","tmin_90_3_coas","tmin_95_2_coas", "dow", "wDay",
-         "coas_tavg_99_2", "coas_tavg_99_3", "coas_tmax_99_2",
-         "coas_tmax_99_3", "coas_tmin_99_2", "coas_tmin_99_3")
-coastal[cat] <- lapply(coastal[cat], factor)
-coastal$Rate_ER_visit <- as.numeric(coastal$imp_rate)
-#coastal$Log_rate_ER_visit<- log(coastal$Rate_ER_visit)
-coastal$Count_ER_visit <- as.numeric(coastal$imp_count)
-coastal$Max_temp <- as.numeric(coastal$tmax)
-coastal$Min_temp <- as.numeric(coastal$tmin)
-coastal$Avg_temp <- as.numeric(coastal$tavg)
-coastal$doy <- as.numeric(format(coastal$date, "%d"))
-#coastal$month <- as.numeric(format(coastal$date, "%m"))
-#coastal$year <- as.numeric(format(coastal$date, "%Y"))
-coastal$DTR <- as.numeric(coastal$tmax - coastal$tmin)
-coastal$MAT<- as.numeric(coastal$app_temp)
-coastal$Dewpoint<- as.numeric(coastal$dewpoint)
-coastal$pop<- as.numeric(2741101)
-##### COMPUTING ADDITIONAL VARIABLES ######
-#Steadman HI
-coastal$Steadman_HI <- heat.index(t = coastal$tmax,dp = coastal$dewpoint,
-                                  temperature.metric = "fahrenheit")
-# US NWS HI
-coastal$NWS_HI<- heat.index.algorithm(t=coastal$tmax, rh=coastal$RH)
-
-coastal$tavg_cel<- as.numeric(tempftoc(coastal$tavg)) #convert F to C
-coastal$Humidex <- as.numeric(humidex(coastal$tavg_cel, coastal$RH))
-#thermal discomfort index
-coastal$TDI <- as.numeric(di(coastal$tavg_cel, coastal$RH))
-
-#Steadman definitions
-coastal$HI_26 <- as.factor(ifelse(coastal$MAT >= 95.85, 1,0)) #85th pct
-coastal$HI_27 <- as.factor(ifelse(coastal$MAT >= 97.16, 1,0)) #90th pct
-coastal$HI_28 <- as.factor(ifelse(coastal$MAT >= 98.99, 1,0)) #95th pct
-
-# Tan et al HW definition
-coastal$tmax_cel<- as.numeric(tempftoc(coastal$tmax)) #convert F to C
-coastal$HI_17<- as.factor(ifelse(coastal$tmax_cel >= 35, 1,0))
-
-#NWS HW definitions
-coastal$HI_29 <- as.factor(ifelse(coastal$NWS_HI >= 105, 1,0))
-coastal$HI_30 <- as.factor(ifelse(coastal$NWS_HI > 110, 1,0))
-
-
-################## CORRELATION MATRIX ######################
-myvars <- c("Rate_ER_visit","Count_ER_visit","Max_temp","Min_temp",
-            "Avg_temp","DTR","Dewpoint","RH","MAT","Steadman_HI",
-            "NWS_HI","Humidex","TDI","EHF")
-dat<- coastal[myvars]
-M<-cor(dat, method = "pearson")
-
-##################### CORR MATRIX- MATRIX FUNCTION #############
-cor.mtest <- function(mat, ...) {
-  mat <- as.matrix(mat)
-  n <- ncol(mat)
-  p.mat<- matrix(NA, n, n)
-  diag(p.mat) <- 0
-  for (i in 1:(n - 1)) {
-    for (j in (i + 1):n) {
-      tmp <- cor.test(mat[, i], mat[, j], ...)
-      p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
-    }
-  }
-  colnames(p.mat) <- rownames(p.mat) <- colnames(mat)
-  p.mat
-}
-# matrix of the p-value of the correlation
-p.mat <- cor.mtest(dat)
-head(p.mat[, 1:15])
-
-#Correlation matrix
-col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
-corrplot(M, method="color", col=col(200),  
-         type="upper", order="original", addrect = 2,
-         addCoef.col = "black", # Add coefficient of correlation
-         tl.col="black", tl.srt=45, #Text label color and rotation
-         # Combine with significance
-         p.mat = p.mat, sig.level = 0.05, insig = "pch", 
-         # hide correlation coefficient on the principal diagonal
-         diag=FALSE)
-
-##############Density plot ########################
-ggplot(coastal, aes(x=NWS_HI)) + 
-  geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
-                 binwidth=1,
-                 colour="black", fill="white") +
-  geom_density(alpha=.2, fill="#FF6666")+  # Overlay with transparent density plot
-  geom_vline(aes(xintercept = mean(NWS_HI, na.rm = T)),
-           colour = "red", linetype ="longdash", size = .8)
-
-
-
-##################### HW DEF SENSITIVITY ANALYSIS ############
-ls(coastal)
-
-hw1<- glm.nb(imp_count~tavg_90_3_coas,data=coastal)
-(est <- cbind(Estimate = coef(hw1), confint(hw1)))
-exp(est)
+coastal$temp_c <- ((coastal$tmax - 32) * 0.5555556)
 
 ################# GAM MODEL
 
-m1<- gam(imp_rate ~ s(Max_temp,k=3, bs='cr')+dow+month+year,
+m1<- gam(imp_rate ~ s(temp_c,k=3, bs='cr')+dow+month+year,
          family=Gamma(link = log),
          method = "GCV.Cp",
          data=coastal)
@@ -292,8 +189,7 @@ write.csv(x, "C:/Users/jagad/Desktop/NC_manus/future_clim_dat/coas_densityplt_pr
 #piedmont<- read.csv("C:/Users/jagad/Desktop/NC_Sur/NC_HW_new/Heat_NC/HeatWave_final/working_Set/piedmont.csv", header = TRUE) #old link
 #piedmont[sapply(piedmont, is.integer)]<-lapply(piedmont[sapply(piedmont, is.integer)], as.factor)
 
-piedmont <- read.csv ("C:/Users/jagad/Desktop/NC_Sur/NC_Dec2019/pied_octf.csv", header = T,
-                      fileEncoding="UTF-8-BOM")
+piedmont <- read_csv ("/work/jessebell/puvvula/pied_octf.csv")
 
 piedmont$EHF<- ehf(piedmont$tmax, piedmont$tmin, t95 = 80.55)
 
@@ -307,6 +203,8 @@ piedmont$dow <- wday(as.Date(piedmont$date, format = "%m/%d/%Y"))
 weekdays2 <- c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')
 piedmont$wDay <- factor((weekdays(piedmont$date) %in% weekdays2), 
                         levels=c(FALSE, TRUE), labels=c('weekend', 'weekday'))
+piedmont$temp_c <- ((piedmont$tmax - 32) * 0.5555556)
+
 
 cat1 <- c("tavg_95_2_pie","tavg_98_2_pie","tavg_95_3_pie","tavg_98_3_pie","tavg_90_2_pie",
          "tavg_90_3_pie","tmax_95_3_pie","tmax_98_2_pie","tmax_98_3_pied","tmax_90_2_pie",
@@ -402,16 +300,16 @@ exp(est)
 
 ################# GAM MODEL
 
-m3<- gam(imp_rate ~ s(Max_temp,k=4, bs='cr')+dow+month+year,
+m2<- gam(imp_rate ~ s(temp_c,k=4, bs='cr')+dow+month+year,
          family=Gamma(link = log),
          method = "GCV.Cp",
          data=piedmont)
 
-summary(m3)
+summary(m2)
 m1$aic
 gam.check(m1)
 
-m4<- gam(imp_rate ~ s(Max_temp,k=5, bs='cr')+dow+month+year,
+m4<- gam(imp_rate ~ s(temp_c,k=5, bs='cr')+dow+month+year,
          family=Gamma(link = log),
          method = "GCV.Cp",
          data=piedmont)
@@ -453,23 +351,231 @@ testset$pied_nat_fin<- exp(testset$pied_nat)
 testset$tmax_pred_count<- as.numeric(((testset$pied_nat_fin)*5571983)/100000)
 write.csv(testset, "C:\\Users\\jagad\\Desktop\\work\\test_pied_predictions.csv")
 
-#probability density plots
-x<- read.csv("C:\\Users\\jagad\\Desktop\\work\\pied_temp.csv", 
-             header = T,fileEncoding="UTF-8-BOM")
-ggplot(x, aes(x=Temp, colour=Variable))+geom_density()+xlab("Maximum temperature (°F)")+
-  theme(text = element_text(size = 15))+theme(legend.position='bottom')
+####################################################
+####################################################
+# Manuscript figures
+#Figure. 1
+library(tidyverse)
+dat<- read_csv("/work/jessebell/puvvula/attr_fig_one.csv")
+dat$Temp_c <- ((dat$Temp - 32) * 0.5555556)
 
-################33
-#plots for publication
-#https://cran.r-project.org/web/packages/lemon/vignettes/legends.html
-library(ggplot2)
-library(reshape2)
 library(extrafont)
-library(dplyr)
-loadfonts(device = "win")
-#library(gridExtra)
-x<- read.csv("C:\\Users\\jagad\\Desktop\\NC_manus\\future_clim_dat\\coas_densityplt.csv", header = T,
+loadfonts()
+
+ggplot(dat, aes(x=Temp_c, colour=Category, linetype=Category))+
+  geom_density()+
+  scale_linetype_manual(values=c(5,1))+
+  scale_color_manual(values=c('blue','firebrick1'))+
+  xlab("Maximum temperature (°C)")+
+  ylab("Density")+
+  facet_grid((Region~.), scales="fixed")+
+  theme(axis.line = element_line(colour = "black"))+
+  theme_bw()+
+  theme(legend.position='bottom')+
+  theme(text=element_text(size=12, family = "Helvetica"), 
+        axis.text=element_text(size=10, family = "Helvetica"), 
+        axis.title=element_text(size=12, family = "Helvetica"), 
+        plot.title=element_text(size=12, family = "Helvetica"), 
+        legend.text=element_text(size=12, family = "Helvetica"), 
+        legend.title=element_blank()+
+  strip.text.y = element_blank())
+
+ggsave("fig_one.tiff", 
+       width = 4,height = 9)
+
+#Remove facet label        
+#strip.text.y = element_blank())
+
+#placing legend inside the plot
+  #theme(strip.text.x = element_blank(),
+   #     strip.background = element_rect(colour="transparent", 
+    #                                    fill="transparent"),
+     #   legend.position=c(0.1,0.95))
+
+
+##################
+##################
+#Figure. 2
+library(lubridate)
+dat_two<- read_csv("/work/jessebell/puvvula/fig_two.csv")
+
+dat_two$Date <- as.Date(dat_two$Date, format = "%m/%d/%Y")
+dat_two$Month<- as.factor(months(dat_two$Date))
+dat_two$Year<- as.factor(format(dat_two$Date, '%Y'))
+
+#Reorder month variable
+dat_two$Month <- factor(dat_two$Month, 
+                        levels=c("May", "June", 
+                                 "July", "August", "September"))
+
+#percent increase in ER visit estimation
+dat_two$anomaly<- ((dat_two$Observed-dat_two$Natural)/
+                     dat_two$Natural)*100
+#positive value - percent increase
+#negative value - percent decrease
+
+ggplot(dat_two, aes(Year, anomaly)) +
+  geom_boxplot( alpha=0.2, aes(fill=Month), 
+                outlier.size=1)+
+  facet_grid(Region~., scales="fixed")+
+  ylim(-100,1000)+
+  labs(x="Year",
+       y="Rate of HRI ER visits anomaly (%)")+
+  geom_hline(yintercept = 0, linetype="dashed", color="grey")+
+  theme_bw() + theme(panel.border = element_blank(), 
+                     panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(), 
+                     axis.line = element_line(colour = "black"))+
+  theme(
+    legend.position='bottom',
+    axis.line = element_line(colour = "black"),
+    text=element_text(size=12, family = "Helvetica"),
+    axis.text=element_text(size=10, family = "Helvetica"),
+    axis.title=element_text(size=12, family = "Helvetica"),
+    plot.title=element_text(size=12, family = "Helvetica"),
+    legend.text=element_text(size=12, family = "Helvetica"),
+    legend.title=element_blank())
+
+ggsave("/work/jessebell/puvvula/fig_two.tiff", 
+       width = 6,height = 6)
+
+
+###########################
+###########################
+#Figure.3
+dat_three<- read_csv("/work/jessebell/puvvula/fig_three.csv")
+
+ggplot(dat_three, aes(Time_period, pred_ER, group=Time_period)) +
+  geom_boxplot(varwidth = TRUE, alpha=0.2, aes(fill=Time_period))+
+  facet_grid(region~RCP+Model, scales="fixed")+
+  labs(x="", y="Estimated daily rate of HRI ER visits (per 100,000)")+
+  theme_bw() + 
+  theme(panel.border = element_blank(), 
+                     panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(), 
+                     axis.line = element_line(colour = "black"))+
+  theme(
+    legend.position='bottom',
+    axis.line = element_line(colour = "black"),
+    text=element_text(size=12, family = "Helvetica"),
+    axis.text=element_text(size=10, family = "Helvetica"),
+    axis.title=element_text(size=12, family = "Helvetica"),
+    plot.title=element_text(size=12, family = "Helvetica"),
+    legend.text=element_text(size=12, family = "Helvetica"),
+    legend.title=element_blank())+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+
+ggsave("/work/jessebell/puvvula/fig_three.tiff", 
+       width = 8,height = 6)
+
+####################################################
+####################################################
+
+#Supplement. 1
+################## CORRELATION MATRIX ######################
+myvars <- c("Rate_ER_visit","Count_ER_visit","Max_temp","Min_temp",
+            "Avg_temp","DTR","Dewpoint","RH","MAT","Steadman_HI",
+            "NWS_HI","Humidex","TDI","EHF")
+dat<- coastal[myvars]
+M<-cor(dat, method = "pearson")
+
+##################### CORR MATRIX- MATRIX FUNCTION #############
+cor.mtest <- function(mat, ...) {
+  mat <- as.matrix(mat)
+  n <- ncol(mat)
+  p.mat<- matrix(NA, n, n)
+  diag(p.mat) <- 0
+  for (i in 1:(n - 1)) {
+    for (j in (i + 1):n) {
+      tmp <- cor.test(mat[, i], mat[, j], ...)
+      p.mat[i, j] <- p.mat[j, i] <- tmp$p.value
+    }
+  }
+  colnames(p.mat) <- rownames(p.mat) <- colnames(mat)
+  p.mat
+}
+# matrix of the p-value of the correlation
+p.mat <- cor.mtest(dat)
+head(p.mat[, 1:15])
+
+#Correlation matrix
+col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
+corrplot(M, method="color", col=col(200),  
+         type="upper", order="original", addrect = 2,
+         addCoef.col = "black", # Add coefficient of correlation
+         tl.col="black", tl.srt=45, #Text label color and rotation
+         # Combine with significance
+         p.mat = p.mat, sig.level = 0.05, insig = "pch", 
+         # hide correlation coefficient on the principal diagonal
+         diag=FALSE)
+
+##############Density plot ########################
+ggplot(coastal, aes(x=NWS_HI)) + 
+  geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
+                 binwidth=1,
+                 colour="black", fill="white") +
+  geom_density(alpha=.2, fill="#FF6666")+  # Overlay with transparent density plot
+  geom_vline(aes(xintercept = mean(NWS_HI, na.rm = T)),
+             colour = "red", linetype ="longdash", size = .8)
+
+
+#########################
+#Supplement.2-A
+library(visreg)
+
+p.coas <- visreg(m1,  scale='response', "temp_c", line.par = list(col = 'red'), plot=FALSE)
+p.pied <- visreg(m2,  scale='response', "temp_c", plot = FALSE)
+
+dplyr::bind_rows(
+  dplyr::mutate(p.coas$fit, plt = "Coastal"),
+  dplyr::mutate(p.pied$fit, plt = "Piedmont")
+) -> fits
+
+ggplot() +
+  geom_ribbon(
+    data = fits, 
+    aes(temp_c, ymin=visregLwr, ymax=visregUpr, group=plt), 
+    fill="gray90") +
+  geom_line(data = fits, aes(temp_c, visregFit, group=plt, color=plt)) +
+  labs(x="Maximum temperature (°C)", 
+       y="Rate of HRI ER visits (per 100,000)")+
+  xlim(15,40)+
+  theme_bw()+ theme(panel.border = element_blank(), 
+                    panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(), 
+                    axis.line = element_line(colour = "black"))+
+  theme(
+    legend.position='bottom',
+    axis.line = element_line(colour = "black"),
+    text=element_text(size=12, family = "Helvetica"),
+    axis.text=element_text(size=10, family = "Helvetica"),
+    axis.title=element_text(size=12, family = "Helvetica"),
+    plot.title=element_text(size=12, family = "Helvetica"),
+    legend.text=element_text(size=12, family = "Helvetica"),
+    legend.title=element_blank())+
+  theme(strip.text.x = element_blank(),
+       strip.background = element_rect(colour="transparent", 
+                                      fill="transparent"),
+     legend.position=c(0.2,0.90))
+
+
+ggsave("/work/jessebell/puvvula/supp_2a.tiff", 
+       width = 4,height = 4)
+
+#########################################
+#Supplement. 6
+##### GFDL CCSM correlation ####
+x<- read.csv("C:\\Users\\jagad\\Desktop\\NC_manus\\future_clim_dat\\
+             pied.csv", header = T,
              fileEncoding="UTF-8-BOM")
+cor(x$ccsm4_45_tasmax_1116, x$gfdl_45_tasmax_1116, method = "pearson")
+
+################################
+#supplement. 7
+
+
 x$Daily_Maximum_Temperature<- ((x$Tmax *(9/5))+32)
 x$RCP<-as.factor(x$RCP)
 
@@ -479,81 +585,101 @@ ggplot(x, aes(x=Daily_Maximum_Temperature, colour=RCP))+ geom_density()+
   theme(plot.title = element_text(hjust = 0.5))+
   scale_color_manual(values=c('blue','firebrick1'))+
   theme(legend.position = 'bottom')+
-  theme(text=element_text(size=16,  family="Arial Black"))
-
-
-###prediction plots
-x<- read.csv("C:\\Users\\jagad\\Desktop\\NC_manus\\future_clim_dat\\pied_densityplt_pred.csv", header = T,
-             fileEncoding="UTF-8-BOM")
-library(lubridate) # for working with dates
-library(ggplot2)  # for creating graphs
-library(scales)   # to access breaks/formatting functions
-library(gridExtra) # for arranging plots
-library(grid)   # for arranging plots
-library(dplyr)  # for subsetting by season
-x$RCP<-as.factor(x$RCP)
-x$date<- as.Date(x$date, "%m/%d/%y")
-
-##Time series pred ER visits by RCP
-plt<-ggplot(x, aes(date, pred_ER, group=RCP)) +
-  geom_line(aes(color=RCP)) +
-  facet_grid(Model~Time.period)+
-  ggtitle("HRI ER Visits during climate change - Coastal")+
-  labs(x="Date by time period", y="Estimated HRI ER visits (per 100,000)")+
-  theme(axis.text.x = element_text(angle = 45))+
-  theme(plot.title = element_text(hjust = 0.5))+
-  scale_color_manual(values=c('blue','firebrick1'))+
-  theme(legend.position = 'bottom')+
-  theme(text=element_text(size=16,  family="Arial Black"))
-
-plt
-
-### Boxplot  - Pred ER visits by timeframe
-x$RCP<-as.factor(x$RCP)
-levels(x$RCP) <- c("RCP 4.5","RCP 8.5")
-
-plt<-ggplot(x, aes(Time.period, pred_ER, group=Time.period)) +
-  geom_boxplot(varwidth = TRUE, alpha=0.2, aes(fill=Time.period))+
-  facet_grid(~RCP+Model, scales="fixed")+
-  ggtitle("HRI ER Visits during climate change - Piedmont")+
-  labs(x="", y="Estimated HRI ER visits (per 100,000)")+
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank())+
-  theme(legend.position = "bottom")+
-  theme(plot.title = element_text(hjust = 0))+
-  theme(text=element_text(size=20,  family="Arial Black"))+
-  theme(axis.text = element_text(size = 20, family="Arial Black"))+
-  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"))
-
-plt
-#legend("topleft", title="Time Frame",c("Current","Mid-Century","Late-Century"))
+  theme(text=element_text(size=16,  family="Arial Black"))+
+  
 
 
 
+########################################
+########################################
+########################################
 
-##### GFDL CCSM correlation ####
-x<- read.csv("C:\\Users\\jagad\\Desktop\\NC_manus\\future_clim_dat\\pied.csv", header = T,
-             fileEncoding="UTF-8-BOM")
-cor(x$ccsm4_45_tasmax_1116, x$gfdl_45_tasmax_1116, method = "pearson")
+#Paper 2 analysis
+
+cat <- c("tavg_95_2_coas","tavg_98_2_coas","tavg_95_3_coas","Tavg_98_3_coas",
+         "tavg_90_2_coas","tavg_90_3_coas","tmax_98_3_coas","tmax_98_2_coas",
+         "tmax_90_2_coas","tmax_90_3_coas","tmax_95_2_coas","tmax_95_3_coas",
+         "tmin_95_3_coas","tmin_98_2_coas","Tmin_98_3_coas",
+         "tmin_90_2_coas","tmin_90_3_coas","tmin_95_2_coas", "dow", "wDay",
+         "coas_tavg_99_2", "coas_tavg_99_3", "coas_tmax_99_2",
+         "coas_tmax_99_3", "coas_tmin_99_2", "coas_tmin_99_3")
+coastal[cat] <- lapply(coastal[cat], factor)
+coastal$Rate_ER_visit <- as.numeric(coastal$imp_rate)
+#coastal$Log_rate_ER_visit<- log(coastal$Rate_ER_visit)
+coastal$Count_ER_visit <- as.numeric(coastal$imp_count)
+coastal$Max_temp <- as.numeric(coastal$tmax)
+coastal$Min_temp <- as.numeric(coastal$tmin)
+coastal$Avg_temp <- as.numeric(coastal$tavg)
+coastal$doy <- as.numeric(format(coastal$date, "%d"))
+#coastal$month <- as.numeric(format(coastal$date, "%m"))
+#coastal$year <- as.numeric(format(coastal$date, "%Y"))
+coastal$DTR <- as.numeric(coastal$tmax - coastal$tmin)
+coastal$MAT<- as.numeric(coastal$app_temp)
+coastal$Dewpoint<- as.numeric(coastal$dewpoint)
+coastal$pop<- as.numeric(2741101)
+##### COMPUTING ADDITIONAL VARIABLES ######
+#Steadman HI
+coastal$Steadman_HI <- heat.index(t = coastal$tmax,dp = coastal$dewpoint,
+                                  temperature.metric = "fahrenheit")
+# US NWS HI
+coastal$NWS_HI<- heat.index.algorithm(t=coastal$tmax, rh=coastal$RH)
+
+coastal$tavg_cel<- as.numeric(tempftoc(coastal$tavg)) #convert F to C
+coastal$Humidex <- as.numeric(humidex(coastal$tavg_cel, coastal$RH))
+#thermal discomfort index
+coastal$TDI <- as.numeric(di(coastal$tavg_cel, coastal$RH))
+
+#Steadman definitions
+coastal$HI_26 <- as.factor(ifelse(coastal$MAT >= 95.85, 1,0)) #85th pct
+coastal$HI_27 <- as.factor(ifelse(coastal$MAT >= 97.16, 1,0)) #90th pct
+coastal$HI_28 <- as.factor(ifelse(coastal$MAT >= 98.99, 1,0)) #95th pct
+
+# Tan et al HW definition
+coastal$tmax_cel<- as.numeric(tempftoc(coastal$tmax)) #convert F to C
+coastal$HI_17<- as.factor(ifelse(coastal$tmax_cel >= 35, 1,0))
+
+#NWS HW definitions
+coastal$HI_29 <- as.factor(ifelse(coastal$NWS_HI >= 105, 1,0))
+coastal$HI_30 <- as.factor(ifelse(coastal$NWS_HI > 110, 1,0))
+
+
+
+
+
+##################### HW DEF SENSITIVITY ANALYSIS ############
+ls(coastal)
+
+hw1<- glm.nb(imp_count~tavg_90_3_coas,data=coastal)
+(est <- cbind(Estimate = coef(hw1), confint(hw1)))
+exp(est)
+
 
 #paper 2 - main plot
 ################################################################3
-res<-read.csv("C:\\Users\\jagad\\Desktop\\NC_manus\\heatwave_tbl.csv",
-              header=T, fileEncoding="UTF-8-BOM")
+library(tidyverse)
+res<-read_csv("/work/jessebell/puvvula/heatwave_tbl.csv")
 
 library(ggplot2)
-cbbPalette <- c("#000000", "#999999")
+cbbPalette <- c("#CC6666", "#9999CC", "#66CC99", "#000000")
 
-ggplot(res, aes(x = Heat_wave_definition, y = or, ymin = lcl, ymax = ucl)) + 
-  geom_pointrange(aes(col = factor(Region)), 
+res$Region<-as.factor(res$Region)
+res$metric<-as.factor(res$metric)
+levels(res$metric)
+res$Metric<- factor(res$metric, levels = c("Mean daily temperature", 
+                                           "Maximum daily temperature",
+                                           "Minimum daily temperature",
+                                           "Maximum daily apparent temperature"))
+
+ggplot(res, aes(x = Heat_wave_definition, y = or, ymin = lcl, ymax = ucl,
+                shape=Region)) + 
+  geom_pointrange(aes(col = Metric), 
                   position=position_dodge(width=0.8),size = 1) + 
   ylab("Incidence rate ratio [95% CI]") +
   geom_hline(aes(yintercept = 1)) + 
   scale_colour_manual(values=cbbPalette) + 
-  ggtitle("Sensitivity of heat wave definitions")+
+  ggtitle("")+
   xlab("Heat wave definitions")+
-  theme(legend.position = "bottom")+
+  theme(legend.position = "bottom", legend.box = "vertical")+
   theme(plot.title = element_text(hjust = 0.5))+
   theme(text=element_text(size=15,  family="Arial Black"))+
   theme(axis.text = element_text(size = 15, family="Arial Black"))+
@@ -562,7 +688,7 @@ ggplot(res, aes(x = Heat_wave_definition, y = or, ymin = lcl, ymax = ucl)) +
   theme(panel.border = element_blank(),panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())+
   annotate("rect", xmin = 16.5, xmax = 17.5, ymin = 0, ymax = 7,
-           alpha = .1,fill = "blue")
+           alpha = .1,fill = "#666666")
 
 
 library(tidyverse)
