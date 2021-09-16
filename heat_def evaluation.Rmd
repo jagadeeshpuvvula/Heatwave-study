@@ -1,0 +1,138 @@
+---
+title: "Heat wave definition evaluation"
+author: "Puvvula"
+date: "9/16/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE}
+
+library(tidyverse)
+library(lubridate)
+library(weathermetrics)
+library(ThermIndex)
+library(rcompanion)
+
+dat<- read_csv("/work/jessebell/puvvula/NC_heatdef.csv")
+
+piedmont$EHF<- ehf(piedmont$tmax, piedmont$tmin, t95 = 80.55)
+
+#Steadman HI
+piedmont$Steadman_HI <- heat.index(t = piedmont$tmax,dp = piedmont$Dewpoint,
+                                  temperature.metric = "fahrenheit")
+# US NWS HI
+piedmont$NWS_HI<- heat.index.algorithm(t=piedmont$tmax, rh=piedmont$RH)
+
+piedmont$tavg_cel<- as.numeric(tempftoc(piedmont$Avg_temp)) #convert F to C
+piedmont$Humidex <- as.numeric(humidex(piedmont$tavg_cel, piedmont$RH))
+
+#thermal discomfort index
+piedmont$TDI <- as.numeric(di(piedmont$tavg_cel, piedmont$RH))
+
+
+# Tan et al HW definition
+piedmont$tmax_cel<- as.numeric(tempftoc(piedmont$tmax)) #convert F to C
+piedmont$HI_17<- as.factor(ifelse(piedmont$tmax_cel >= 35, 1,0))
+
+
+#Steadman definitions
+piedmont$HI_26 <- as.factor(ifelse(piedmont$MAT >= 95.85, 1,0)) #85th pct
+piedmont$HI_27 <- as.factor(ifelse(piedmont$MAT >= 97.16, 1,0)) #90th pct
+piedmont$HI_28 <- as.factor(ifelse(piedmont$MAT >= 98.99, 1,0)) #95th pct
+
+cat1 <- c("tavg_95_2_pie","tavg_98_2_pie","tavg_95_3_pie","tavg_98_3_pie","tavg_90_2_pie",
+         "tavg_90_3_pie","tmax_95_3_pie","tmax_98_2_pie","tmax_98_3_pied","tmax_90_2_pie",
+         "tmax_90_3_pie","tmax_95_2_pie","tmin_90_2_pie","tmin_90_3_pie","tmin_95_2_pie",
+         "tmin_95_3_pie","tmin_98_2_pie","tmin_98_3_pie" ,"Tmin_99_2", "Tmin_99_3",
+         "Tmax_99_2","Tmax_99_3", "Tavg_99_2","Tavg_99_3", "dow", "wDay")
+piedmont[cat1] <- lapply(piedmont[cat1], factor)
+
+piedmont$EHF<- as.numeric(piedmont$EHF)
+piedmont$Rate_ER_visit <- as.numeric(piedmont$imp_rate)
+piedmont$Log_rate_ER_visit<- log(piedmont$Rate_ER_visit)
+piedmont$Count_ER_visit <- as.numeric(piedmont$imp_count)
+piedmont$Max_temp <- as.numeric(piedmont$tmax)
+piedmont$Min_temp <- as.numeric(piedmont$tmin)
+piedmont$Avg_temp <- as.numeric(piedmont$TAVG)
+piedmont$DTR <- as.numeric(piedmont$tmax-piedmont$tmin)
+piedmont$MAT<- as.numeric(piedmont$max_appt)
+piedmont$Dewpoint<- as.numeric(piedmont$dpt)
+piedmont$RH<-as.numeric(piedmont$RH)
+
+```
+
+
+```{r}
+#statistical model
+
+hw1<- glm.nb(imp_count~tavg_90_3_coas,data=coastal)
+(est <- cbind(Estimate = coef(hw1), confint(hw1)))
+exp(est)
+```
+
+
+
+```{r}
+################################################################3
+#Figure.2
+
+res<-read_csv("/work/jessebell/puvvula/heatwave_tbl.csv")
+
+cbbPalette <- c("#CC6666", "#9999CC", "#66CC99", "#000000")
+
+res$Region<-as.factor(res$Region)
+res$metric<-as.factor(res$metric)
+levels(res$metric)
+res$Metric<- factor(res$metric, levels = c("Mean daily temperature", 
+                                           "Maximum daily temperature",
+                                           "Minimum daily temperature",
+                                           "Maximum daily apparent temperature"))
+
+ggplot(res, aes(x = Heat_wave_definition, y = or, ymin = lcl, ymax = ucl,
+                shape=Region)) + 
+  geom_pointrange(aes(col = Metric), 
+                  position=position_dodge(width=0.8),size = 1) + 
+  ylab("Incidence rate ratio [95% CI]") +
+  geom_hline(aes(yintercept = 1)) + 
+  scale_colour_manual(values=cbbPalette) + 
+  ggtitle("")+
+  xlab("Heat wave definitions")+
+  theme(legend.position = "bottom", legend.box = "vertical")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  theme(text=element_text(size=15,  family="Arial Black"))+
+  theme(axis.text = element_text(size = 15, family="Arial Black"))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  scale_y_continuous(breaks = seq(0, 7, 1),limits=c(0, 7))+
+  theme(panel.border = element_blank(),panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())+
+  annotate("rect", xmin = 16.5, xmax = 17.5, ymin = 0, ymax = 7,
+           alpha = .1,fill = "#666666")
+
+```
+
+
+```{r}
+#Miscellaneous 
+
+x<- read_csv("C:/Users/jagad/Desktop/NC_manus/HW_coas_pied_comp.csv")
+x$HW_cos<- ifelse(x$coas_tmax>= 95, 1, 0)
+x$HW_pied<- ifelse(x$pied_tmax>=95, 1, 0)
+cor(x$HW_cos, x$HW_pied, method = "pearson")
+
+#Matched/paired t-test
+table(x$HW_cos, x$HW_pied) #2 by 2 table
+prop.table(table(x$HW_cos, x$HW_pied),margin = 2)*100 #proportion table
+mcnemar.test(x$HW_cos, x$HW_pied) # McNemar test (for binary data)
+#t.test(x$HW_cos, x$HW_pied, paired = TRUE, alternative = "two.sided") #paired t test
+
+#correlation between heatwave definition 17 and NWS database
+x<- read_csv("C:/Users/jagad/Desktop/pied_cor.csv")
+cor(x$hw_17, x$nws_hi, method = "pearson", use = "complete.obs")
+prop.table(table(x$hw_17, x$nws_hi),margin = 1)*100 #margin =2 for column percentages
+mcnemar.test(x$hw_17, x$nws_hi)
+```
+
