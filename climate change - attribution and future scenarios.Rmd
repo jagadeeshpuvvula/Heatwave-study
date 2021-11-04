@@ -18,7 +18,8 @@ library(lubridate)
 library(corrplot)
 library(skimr)
 
-dat <- read_csv ("/work/jessebell/puvvula/NC_data.csv")
+coastal <- read_csv ("/work/jessebell/puvvula/coastal_octf.csv")
+piedmont<-read_csv ("/work/jessebell/puvvula/coastal_octf.csv")
 
 #filter by region for analysis
 
@@ -80,16 +81,16 @@ corrplot(M, method="color", col=col(200),
 ```{r, echo=FALSE}
 # GAM - Model building and comparision
 
-m2<- gam(imp_rate ~ s(temp_c,k=4, bs='cr')+dow+month+year,
+m1<- gam(imp_rate ~ s(temp_c,k=4, bs='cr')+wDay+month+year,
          family=Gamma(link = log),
          method = "GCV.Cp",
-         data=piedmont)
+         data=coastal)
 
-summary(m2)
+summary(m1)
 m1$aic
 gam.check(m1)
 
-m4<- gam(imp_rate ~ s(temp_c,k=5, bs='cr')+dow+month+year,
+m2<- gam(imp_rate ~ s(temp_c,k=5, bs='cr')+wDay+month+year,
          family=Gamma(link = log),
          method = "GCV.Cp",
          data=piedmont)
@@ -160,7 +161,7 @@ ggplot() +
     fill="gray90") +
   geom_line(data = fits, aes(temp_c, visregFit, group=plt, color=plt)) +
   labs(x="Maximum temperature (°C)", 
-       y="Rate of HRI ER visits (per 100,000)")+
+       y="Rate of HRI morbidity (per 100,000)")+
   xlim(15,40)+
   theme_bw()+ theme(panel.border = element_blank(), 
                     panel.grid.major = element_blank(),
@@ -194,6 +195,16 @@ library(tidyverse)
 dat<- read_csv("/work/jessebell/puvvula/attr_fig_one.csv")
 dat$Temp_c <- ((dat$Temp - 32) * 0.5555556)
 
+#comparing hot days
+dat$hot_day<- as.factor(cut(dat$Temp_c,c(0,29.9999,40), labels=c(0,1)))
+
+coastal_dat<-filter(dat,Region=="Coastal")
+pied_dat<-filter(dat,Region=="Piedmont")
+
+tbl<-table(coastal_dat$Category, coastal_dat$hot_day)
+chisq.test(tbl)
+
+########
 library(extrafont)
 loadfonts()
 
@@ -237,6 +248,17 @@ ggsave("fig_one.tiff",
 library(lubridate)
 dat_two<- read_csv("/work/jessebell/puvvula/fig_two.csv")
 
+#comparing HRI
+coastal_dat<-filter(dat_two,Region=="Coastal")
+pied_dat<-filter(dat_two,Region=="Piedmont")
+
+#wide to long conversion
+dat_test<-gather(pied_dat, scene, measure, 
+                 Natural:Observed, factor_key = T)
+
+t.test(dat_test$measure ~ dat_test$scene, paired=T)
+
+
 dat_two$Date <- as.Date(dat_two$Date, format = "%m/%d/%Y")
 dat_two$Month<- as.factor(months(dat_two$Date))
 dat_two$Year<- as.factor(format(dat_two$Date, '%Y'))
@@ -258,7 +280,7 @@ ggplot(dat_two, aes(Year, anomaly)) +
   facet_grid(Region~., scales="fixed")+
   ylim(-100,1000)+
   labs(x="Year",
-       y="Rate of HRI ER visits anomaly (%)")+
+       y="HRI morbidity attributable to climate change (%)")+
   geom_hline(yintercept = 0, linetype="dashed", color="grey")+
   theme_bw() + theme(panel.border = element_blank(), 
                      panel.grid.major = element_blank(),
@@ -287,10 +309,25 @@ ggsave("/work/jessebell/puvvula/fig_two.tiff",
 #Figure.3
 dat_three<- read_csv("/work/jessebell/puvvula/fig_three.csv")
 
+#comparing hot days
+dat_three$temp_c <- ((dat_three$Max_temp - 32) * 0.5555556)
+dat_three$hot_day<- as.factor(cut(dat_three$temp_c,c(0,29.99,40), labels=c(0,1)))
+
+coastal_dat<-filter(dat_three,region=="Coastal")
+pied_dat<-filter(dat_three,region=="Piedmont")
+
+tbl<-table(coastal_dat$RCP, coastal_dat$hot_day)
+chisq.test(tbl)
+
+tbl<-table(pied_dat$Time_period, pied_dat$hot_day)
+chisq.test(tbl)
+
+
+################
 ggplot(dat_three, aes(Time_period, pred_ER, group=Time_period)) +
   geom_boxplot(varwidth = TRUE, alpha=0.2, aes(fill=Time_period))+
   facet_grid(region~RCP+Model, scales="fixed")+
-  labs(x="", y="Estimated daily rate of HRI ER visits (per 100,000)")+
+  labs(x="", y="Rate of HRI morbidity (per 100,000)")+
   theme_bw() + 
   theme(panel.border = element_blank(), 
                      panel.grid.major = element_blank(),
@@ -331,16 +368,101 @@ cor(x$ccsm4_45_tasmax_1116, x$gfdl_45_tasmax_1116, method = "pearson")
 ```{r}
 ################################
 #supplement. 7
-x$Daily_Maximum_Temperature<- ((x$Tmax *(9/5))+32)
+x<-read_csv("/work/jessebell/puvvula/fig_three.csv")
+
+x$temp_c<- ((x$Max_temp -32)*0.5555556)
 x$RCP<-as.factor(x$RCP)
 
-ggplot(x, aes(x=Daily_Maximum_Temperature, colour=RCP))+ geom_density()+
-  facet_grid(Model~Time.period)+
-  ggtitle("Projected maximum temperature - Coastal")+
-  theme(plot.title = element_text(hjust = 0.5))+
-  scale_color_manual(values=c('blue','firebrick1'))+
-  theme(legend.position = 'bottom')+
-  theme(text=element_text(size=16,  family="Arial Black"))
+ggplot(x, aes(x=temp_c, colour=RCP, linetype = region))+ 
+  geom_density()+facet_grid(Model~Time_period)+
+  labs(x="Temperature (°C)", y="Density")+
+  #xlim()+
+  theme_bw() + 
+  theme(panel.border = element_blank(), 
+                     panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(), 
+                     axis.line = element_line(colour = "black"))+
+  theme(
+    legend.position='bottom',
+    axis.line = element_line(colour = "black"),
+    text=element_text(size=12, family = "Helvetica"),
+    axis.text=element_text(size=10, family = "Helvetica"),
+    axis.title=element_text(size=12, family = "Helvetica"),
+    plot.title=element_text(size=12, family = "Helvetica"),
+    legend.text=element_text(size=12, family = "Helvetica"),
+    legend.title=element_blank())
+  
+ggsave("/work/jessebell/puvvula/sup_seven.tiff", 
+       width = 10,height = 10)
+
+
   
 ```
+
+
+```{r}
+
+library(tidyverse)
+library(dlnm)
+library(splines)
+library(lubridate)
+library(mgcv)
+#=================================================================================
+#coastal
+dat <- read_csv("/work/jessebell/puvvula/coastal_octf.csv")
+
+#piedmont
+dat <- read.csv ("/work/jessebell/puvvula/pied_octf.csv")
+
+dat$date <- dat$Date # only for piedmont
+# ==================================================================================
+dat$date <- as.Date(dat$date, format = "%m/%d/%Y")
+dat$dow <- wday(as.Date(dat$date, format = "%m/%d/%Y"))
+dat$month<- as.factor(month(dat$date))
+dat$year<- as.factor(format(dat$date, '%Y'))
+weekdays1 <- c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')
+dat$wDay <- factor((weekdays(dat$date) %in% weekdays1), 
+                       levels=c(FALSE, TRUE), labels=c('weekend', 'weekday'))
+
+cat <- c("month", "dow", "wDay", "year")
+dat[cat] <- lapply(dat[cat], factor)
+dat$Rate_ER_visit <- as.numeric(dat$imp_rate)
+dat$Count_ER_visit <- as.numeric(dat$imp_count)
+dat$Max_temp <- as.numeric(dat$tmax)
+dat$temp_c<- ((dat$tmax- 32) * 0.5555556)
+# ==================================================================================
+varknots <- equalknots(dat$temp_c,fun="bs",df=5,degree=2)
+lagknots <- logknots(5, 1)
+cb3.temp <- crossbasis(dat$temp_c, lag=5, 
+                       argvar=list(fun="bs",knots=varknots), arglag=list(knots=lagknots))
+model3 <- gam(Count_ER_visit ~ cb3.temp+dow+month+year,
+              family=quasipoisson(), dat)
+# ==================================================================================
+#how to set the cen value
+pred3.temp <- crosspred(cb3.temp, model3,coef=NULL, vcov = NULL,
+                        cen=32.23, by=1, 
+                        from = 17, to = 37)
+
+#Print risk ratio matrix
+print(pred3.temp$allRRfit)
+
+#3d plot - mostly useless
+plot(pred3.temp, xlab="Temperature (°C)", zlab="RR", theta=200, phi=40,
+     lphi=30,main="3D graph of temperature effect")
+
+
+#relative risk | Temperature | lag
+plot(pred3.temp, "contour", xlab="Temperature", key.title=title("RR"),
+     plot.title=title("Contour plot",
+                      xlab="Temperature (°C)",ylab="Lag"))
+
+#what happens at different lags and temp values [change var=c() for temp | lag=c() for lag days] 
+plot(pred3.temp, "slices", var=c(32,35), lag=c(0,5), col=4,
+     ci.arg=list(density=40,col=grey(0.7)))
+
+# ==================================================================================
+
+
+```
+
 
