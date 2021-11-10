@@ -128,7 +128,7 @@ ggplot(res, aes(x = as.factor(order), y = or, ymin = lcl, ymax = ucl,
   facet_grid(.~Heat_wave_definition, scales = "free", switch = "x", space = "free_x")
 
 ```
-```
+
 
 
 ```{r}
