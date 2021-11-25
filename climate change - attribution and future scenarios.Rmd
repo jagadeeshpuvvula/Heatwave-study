@@ -274,6 +274,13 @@ dat_two$anomaly<- ((dat_two$Observed-dat_two$Natural)/
 #positive value - percent increase
 #negative value - percent decrease
 
+dat_two %>% 
+  group_by(Region) %>% 
+  summarize(q1 = quantile(anomaly, 0.25),
+            q2 = quantile(anomaly, 0.50),
+            q3 = quantile(anomaly, 0.75))
+
+
 ggplot(dat_two, aes(Year, anomaly)) +
   geom_boxplot( alpha=0.2, aes(fill=Month), 
                 outlier.size=1)+
