@@ -150,7 +150,6 @@ ggplot(res, aes(x = as.factor(order), y = or, ymin = lcl, ymax = ucl,
 ```
 
 
-
 ```{r}
 #Miscellaneous 
 
