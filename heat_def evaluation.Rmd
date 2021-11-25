@@ -5,81 +5,101 @@ date: "9/16/2021"
 output: pdf_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 ```{r, echo=FALSE}
 
 library(tidyverse)
 library(lubridate)
 library(weathermetrics)
 library(ThermIndex)
-library(rcompanion)
+#library(rcompanion)
 
-dat<- read_csv("/work/jessebell/puvvula/NC_heatdef.csv")
+dat<- read_csv("/work/jessebell/puvvula/h_def_2021nov.csv")
 
-piedmont$EHF<- ehf(piedmont$tmax, piedmont$tmin, t95 = 80.55)
+dat$date <- as.Date(dat$date, format = "%m/%d/%Y")
+dat$month<- as.factor(month(dat$date))
+dat$year<- as.factor(format(dat$date, '%Y'))
+dat$dow <- wday(as.Date(dat$date, format = "%m/%d/%Y"))
+weekdays1 <- c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')
+dat$wDay <- factor((weekdays(dat$date) %in% weekdays1), 
+                       levels=c(FALSE, TRUE), labels=c('weekend', 'weekday'))
 
-#Steadman HI
-piedmont$Steadman_HI <- heat.index(t = piedmont$tmax,dp = piedmont$Dewpoint,
-                                  temperature.metric = "fahrenheit")
-# US NWS HI
-piedmont$NWS_HI<- heat.index.algorithm(t=piedmont$tmax, rh=piedmont$RH)
+dat$tmax_cel<- as.numeric(tempftoc(dat$tmax)) #convert F to C
+dat$HI_17<- as.factor(ifelse(dat$tmax_cel >= 35, 1,0))
+```
 
-piedmont$tavg_cel<- as.numeric(tempftoc(piedmont$Avg_temp)) #convert F to C
-piedmont$Humidex <- as.numeric(humidex(piedmont$tavg_cel, piedmont$RH))
+```{r}
+#filter by region
 
-#thermal discomfort index
-piedmont$TDI <- as.numeric(di(piedmont$tavg_cel, piedmont$RH))
+coas<- dat %>% subset(Region=="Coastal")
+pied<- dat %>% subset(Region=="Piedmont")
+
+#additional definitions for Coastal
+coas$shw_17 <- as.factor(ifelse(coas$tmax_cel >= 35, 1,0))
+coas$shw_26 <- as.factor(ifelse(coas$app_temp >= 95.85, 1,0)) #85th pct
+coas$shw_27 <- as.factor(ifelse(coas$app_temp >= 97.16, 1,0)) #90th pct
+coas$shw_28 <- as.factor(ifelse(coas$app_temp >= 98.99, 1,0)) #95th pct
 
 
-# Tan et al HW definition
-piedmont$tmax_cel<- as.numeric(tempftoc(piedmont$tmax)) #convert F to C
-piedmont$HI_17<- as.factor(ifelse(piedmont$tmax_cel >= 35, 1,0))
+#additional definitions for Piedmont
+quantile(pied$app_temp, probs = c(0.95, 0.90, 0.85))
 
+pied$shw_17 <- as.factor(ifelse(pied$tmax_cel >= 35, 1,0))
+pied$shw_26 <- as.factor(ifelse(pied$app_temp >= 95.47, 1,0)) #85th pct
+pied$shw_27 <- as.factor(ifelse(pied$app_temp >= 96.66, 1,0)) #90th pct
+pied$shw_28 <- as.factor(ifelse(pied$app_temp >= 98.52, 1,0)) #95th pct
+```
 
-#Steadman definitions
-piedmont$HI_26 <- as.factor(ifelse(piedmont$MAT >= 95.85, 1,0)) #85th pct
-piedmont$HI_27 <- as.factor(ifelse(piedmont$MAT >= 97.16, 1,0)) #90th pct
-piedmont$HI_28 <- as.factor(ifelse(piedmont$MAT >= 98.99, 1,0)) #95th pct
+```{r}
+#testing group differences - identifying co-variates
+library(stats)
 
-cat1 <- c("tavg_95_2_pie","tavg_98_2_pie","tavg_95_3_pie","tavg_98_3_pie","tavg_90_2_pie",
-         "tavg_90_3_pie","tmax_95_3_pie","tmax_98_2_pie","tmax_98_3_pied","tmax_90_2_pie",
-         "tmax_90_3_pie","tmax_95_2_pie","tmin_90_2_pie","tmin_90_3_pie","tmin_95_2_pie",
-         "tmin_95_3_pie","tmin_98_2_pie","tmin_98_3_pie" ,"Tmin_99_2", "Tmin_99_3",
-         "Tmax_99_2","Tmax_99_3", "Tavg_99_2","Tavg_99_3", "dow", "wDay")
-piedmont[cat1] <- lapply(piedmont[cat1], factor)
+#weekday - t-test: Result showed significant difference[mean weekend=0.36; weekday=0.45]
+t.test(coas$imp_rate ~ factor(coas$wDay),
+       paired=F,
+       var.equal=F,
+       conf.level=0.95)
 
-piedmont$EHF<- as.numeric(piedmont$EHF)
-piedmont$Rate_ER_visit <- as.numeric(piedmont$imp_rate)
-piedmont$Log_rate_ER_visit<- log(piedmont$Rate_ER_visit)
-piedmont$Count_ER_visit <- as.numeric(piedmont$imp_count)
-piedmont$Max_temp <- as.numeric(piedmont$tmax)
-piedmont$Min_temp <- as.numeric(piedmont$tmin)
-piedmont$Avg_temp <- as.numeric(piedmont$TAVG)
-piedmont$DTR <- as.numeric(piedmont$tmax-piedmont$tmin)
-piedmont$MAT<- as.numeric(piedmont$max_appt)
-piedmont$Dewpoint<- as.numeric(piedmont$dpt)
-piedmont$RH<-as.numeric(piedmont$RH)
+#year - one way ANOVA: Values are significantly different by year
+summary(aov(coas$imp_rate ~ factor(coas$year)))
+TukeyHSD(aov(coas$imp_rate ~ factor(coas$year)))
+
+#month - ANOVA
+summary(aov(coas$imp_rate ~ factor(coas$month)))
+TukeyHSD(aov(coas$imp_rate ~ factor(coas$month)))
+
+#nws_hw - t-test: found significant difference between groups
+t.test(coas$imp_rate ~ factor(coas$NWS_HW),
+       paired=F,
+       var.equal=F,
+       conf.level=0.95)
 
 ```
 
 
 ```{r}
-#statistical model
+#statistical model:
+#Using wDay+month+year+NWS_HW as covariates as there are significant 
+#group mean differences
 
-hw1<- glm.nb(imp_count~tavg_90_3_coas,data=coastal)
+library(MASS)
+
+pied$pop<- as.numeric(5571983)
+#Coastal: 2741101
+#Piedmont: 5571983
+
+hw1<- glm.nb(imp_cnt~as.factor(shw_05)
+             +wDay+month+year+NWS_HW+
+               offset(log(pop)),
+             data=pied)
 (est <- cbind(Estimate = coef(hw1), confint(hw1)))
 exp(est)
 ```
 
 
-
 ```{r}
 ################################################################3
 ################################################################3
-#Figure.2
+#Figure.1
 library(tidyverse)
 res<-read_csv("/work/jessebell/puvvula/heatwave_tbl.csv")
 cbbPalette <- c("#D55E00", "#0072B2", "#009E73", "#E69F00")
