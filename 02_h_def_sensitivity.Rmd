@@ -11,6 +11,8 @@ library(tidyverse)
 library(lubridate)
 library(weathermetrics)
 library(ThermIndex)
+library(janitor)
+library(skimr)
 #library(rcompanion)
 
 dat<- read_csv("/work/jessebell/puvvula/h_def_2021nov.csv")
@@ -22,6 +24,10 @@ dat$dow <- wday(as.Date(dat$date, format = "%m/%d/%Y"))
 weekdays1 <- c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')
 dat$wDay <- factor((weekdays(dat$date) %in% weekdays1), 
                        levels=c(FALSE, TRUE), labels=c('weekend', 'weekday'))
+
+fct<- c(2, 13:68)
+dat[,fct]<-lapply(dat[,fct],factor)
+skim(dat)
 
 dat$tmax_cel<- as.numeric(tempftoc(dat$tmax)) #convert F to C
 dat$HI_17<- as.factor(ifelse(dat$tmax_cel >= 35, 1,0))
@@ -101,7 +107,11 @@ exp(est)
 ################################################################3
 #Figure.1
 library(tidyverse)
-res<-read_csv("/work/jessebell/puvvula/heatwave_tbl.csv")
+
+#Data for un-adjusted results
+#res<-read_csv("/work/jessebell/puvvula/heatwave_tbl.csv")
+
+res<- read_csv("/work/jessebell/puvvula/h_def_adjusted.csv")
 cbbPalette <- c("#D55E00", "#0072B2", "#009E73", "#E69F00")
 
 res$Region<-factor(res$Region, levels = c("Coastal", "Piedmont"))
@@ -113,17 +123,17 @@ res$Metric<- factor(res$meas, levels = c("Mean",
                                            "Minimum",
                                            "Maximum AT"))
                                            
-res$Threshold_type<- factor(res$Threshold, levels = c("Seasonal", "Monthly"))
+res$Threshold_type<- factor(res$Threshold, levels = c("Seasonal", "Monthly", "Absolute"))
 
-res$order<-factor(res$order, levels = c(1:112))
+res$order<-factor(res$order, levels = c(1:110))
 
 
-ggplot(res, aes(x = as.factor(order), y = or, ymin = lcl, ymax = ucl,
+ggplot(res, aes(x = as.factor(order), y = irr, ymin = lcl, ymax = ucl,
                 shape=Region, linetype=Threshold_type)) + 
   geom_pointrange(aes(col = Metric), 
                   position=position_dodge(width=1.5),size = 0.5) +
   ylab("Incidence rate ratio [95% CI]") +
-  scale_y_continuous(breaks = seq(-1, 19, 1),limits=c(-1, 19))+
+  scale_y_continuous(breaks = seq(-1, 8, 1),limits=c(-1, 8))+
   geom_hline(aes(yintercept = 1)) + 
   scale_colour_manual(values=cbbPalette) + 
   ggtitle("")+
@@ -147,27 +157,28 @@ ggplot(res, aes(x = as.factor(order), y = or, ymin = lcl, ymax = ucl,
         legend.box = "horizontal")+
   facet_grid(.~Heat_wave_definition, scales = "free", switch = "x", space = "free_x")
 
+ggsave("/work/jessebell/puvvula/h_def_adj.tiff", 
+       width = 12,height = 6)
 ```
 
 
 ```{r}
-#Miscellaneous 
+#long to wide data format
+#original data
+dat<- read_csv("/work/jessebell/puvvula/h_def_2021nov.csv")
 
-x<- read_csv("C:/Users/jagad/Desktop/NC_manus/HW_coas_pied_comp.csv")
-x$HW_cos<- ifelse(x$coas_tmax>= 95, 1, 0)
-x$HW_pied<- ifelse(x$pied_tmax>=95, 1, 0)
-cor(x$HW_cos, x$HW_pied, method = "pearson")
+#subset filtered by final variables
+dat_n<- dat %>% select("date", "Region", "tmax", "tavg","mhw_02", "mhw_13", "NWS_HW","imp_rate")
+dat[,c(2, 5:7)]<-lapply(dat[,c(2, 5:7)],factor)
+
+df<- dat_n %>% filter(Region=="Coastal")
 
 #Matched/paired t-test
-table(x$HW_cos, x$HW_pied) #2 by 2 table
-prop.table(table(x$HW_cos, x$HW_pied),margin = 2)*100 #proportion table
-mcnemar.test(x$HW_cos, x$HW_pied) # McNemar test (for binary data)
+table(df$mhw_13, df$NWS_HW) #2 by 2 table
+prop.table(table(df$mhw_13, df$NWS_HW),margin = 2)*100 #proportion table
+mcnemar.test(df$mhw_13, df$NWS_HW) # McNemar test (for binary data)
 #t.test(x$HW_cos, x$HW_pied, paired = TRUE, alternative = "two.sided") #paired t test
 
-#correlation between heatwave definition 17 and NWS database
-x<- read_csv("C:/Users/jagad/Desktop/pied_cor.csv")
-cor(x$hw_17, x$nws_hi, method = "pearson", use = "complete.obs")
-prop.table(table(x$hw_17, x$nws_hi),margin = 1)*100 #margin =2 for column percentages
-mcnemar.test(x$hw_17, x$nws_hi)
-```
+#Coastal: McNemar's chi-squared = 3.7812, df = 1, p-value = 0.05183
+#Piedmont: McNemar's chi-squared = 16.457, df = 1, p-value = 4.976e-05
 
