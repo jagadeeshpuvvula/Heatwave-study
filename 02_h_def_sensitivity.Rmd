@@ -93,12 +93,15 @@ pied$pop<- as.numeric(5571983)
 #Coastal: 2741101
 #Piedmont: 5571983
 
-hw1<- glm.nb(imp_cnt~as.factor(shw_05)
+hw1<- glm.nb(imp_cnt~as.factor(shw_01)
              +wDay+month+year+NWS_HW+
                offset(log(pop)),
              data=pied)
 (est <- cbind(Estimate = coef(hw1), confint(hw1)))
 exp(est)
+
+#comparison of best performing models
+anova(hw1,hw2,test="Chisq")
 ```
 
 

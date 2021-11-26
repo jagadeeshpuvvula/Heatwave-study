@@ -1,0 +1,478 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifluatex
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+
+\author{}
+\date{\vspace{-2.5em}}
+
+\begin{document}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(tidyverse)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## -- Attaching packages --------------------------------------- tidyverse 1.3.1 --
+\end{verbatim}
+
+\begin{verbatim}
+## v ggplot2 3.3.5     v purrr   0.3.4
+## v tibble  3.1.2     v dplyr   1.0.7
+## v tidyr   1.1.3     v stringr 1.4.0
+## v readr   1.4.0     v forcats 0.5.1
+\end{verbatim}
+
+\begin{verbatim}
+## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(lubridate)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Attaching package: 'lubridate'
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:base':
+## 
+##     date, intersect, setdiff, union
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(weathermetrics)}
+\FunctionTok{library}\NormalTok{(ThermIndex)}
+\FunctionTok{library}\NormalTok{(janitor)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Attaching package: 'janitor'
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:stats':
+## 
+##     chisq.test, fisher.test
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(skimr)}
+\CommentTok{\#library(rcompanion)}
+
+\NormalTok{dat}\OtherTok{\textless{}{-}} \FunctionTok{read\_csv}\NormalTok{(}\StringTok{"/work/jessebell/puvvula/h\_def\_2021nov.csv"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   .default = col_double(),
+##   date = col_character(),
+##   Region = col_character()
+## )
+## i Use `spec()` for the full column specifications.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat}\SpecialCharTok{$}\NormalTok{date }\OtherTok{\textless{}{-}} \FunctionTok{as.Date}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{date, }\AttributeTok{format =} \StringTok{"\%m/\%d/\%Y"}\NormalTok{)}
+\NormalTok{dat}\SpecialCharTok{$}\NormalTok{month}\OtherTok{\textless{}{-}} \FunctionTok{as.factor}\NormalTok{(}\FunctionTok{month}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{date))}
+\NormalTok{dat}\SpecialCharTok{$}\NormalTok{year}\OtherTok{\textless{}{-}} \FunctionTok{as.factor}\NormalTok{(}\FunctionTok{format}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{date, }\StringTok{\textquotesingle{}\%Y\textquotesingle{}}\NormalTok{))}
+\NormalTok{dat}\SpecialCharTok{$}\NormalTok{dow }\OtherTok{\textless{}{-}} \FunctionTok{wday}\NormalTok{(}\FunctionTok{as.Date}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{date, }\AttributeTok{format =} \StringTok{"\%m/\%d/\%Y"}\NormalTok{))}
+\NormalTok{weekdays1 }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}Monday\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}Tuesday\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}Wednesday\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}Thursday\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}Friday\textquotesingle{}}\NormalTok{)}
+\NormalTok{dat}\SpecialCharTok{$}\NormalTok{wDay }\OtherTok{\textless{}{-}} \FunctionTok{factor}\NormalTok{((}\FunctionTok{weekdays}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{date) }\SpecialCharTok{\%in\%}\NormalTok{ weekdays1), }
+                       \AttributeTok{levels=}\FunctionTok{c}\NormalTok{(}\ConstantTok{FALSE}\NormalTok{, }\ConstantTok{TRUE}\NormalTok{), }\AttributeTok{labels=}\FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}weekend\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}weekday\textquotesingle{}}\NormalTok{))}
+
+\NormalTok{fct}\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{13}\SpecialCharTok{:}\DecValTok{68}\NormalTok{)}
+\NormalTok{dat[,fct]}\OtherTok{\textless{}{-}}\FunctionTok{lapply}\NormalTok{(dat[,fct],factor)}
+\FunctionTok{skim}\NormalTok{(dat)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}ll@{}}
+\caption{Data summary}\tabularnewline
+\toprule
+& \\
+\midrule
+\endfirsthead
+\toprule
+& \\
+\midrule
+\endhead
+Name & dat \\
+Number of rows & 1423 \\
+Number of columns & 68 \\
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ & \\
+Column type frequency: & \\
+Date & 1 \\
+factor & 57 \\
+numeric & 10 \\
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ & \\
+Group variables & None \\
+\bottomrule
+\end{longtable}
+
+\textbf{Variable type: Date}
+
+\begin{longtable}[]{@{}lrrlllr@{}}
+\toprule
+skim\_variable & n\_missing & complete\_rate & min & max & median &
+n\_unique \\
+\midrule
+\endhead
+date & 0 & 1 & 2011-05-01 & 2016-09-30 & 2014-07-14 & 749 \\
+\bottomrule
+\end{longtable}
+
+\textbf{Variable type: factor}
+
+\begin{longtable}[]{@{}lrrlrl@{}}
+\toprule
+skim\_variable & n\_missing & complete\_rate & ordered & n\_unique &
+top\_counts \\
+\midrule
+\endhead
+Region & 0 & 1 & FALSE & 2 & Pie: 719, Coa: 704 \\
+shw\_01 & 0 & 1 & FALSE & 2 & 0: 1361, 1: 62 \\
+shw\_02 & 0 & 1 & FALSE & 2 & 0: 1377, 1: 46 \\
+shw\_03 & 0 & 1 & FALSE & 2 & 0: 1304, 1: 119 \\
+shw\_04 & 0 & 1 & FALSE & 2 & 0: 1328, 1: 95 \\
+shw\_05 & 0 & 1 & FALSE & 2 & 0: 1182, 1: 241 \\
+shw\_06 & 0 & 1 & FALSE & 2 & 0: 1208, 1: 215 \\
+shw\_07 & 0 & 1 & FALSE & 2 & 0: 965, 1: 458 \\
+shw\_08 & 0 & 1 & FALSE & 2 & 0: 1001, 1: 422 \\
+shw\_09 & 0 & 1 & FALSE & 2 & 0: 1381, 1: 42 \\
+shw\_10 & 0 & 1 & FALSE & 2 & 0: 1393, 1: 30 \\
+shw\_11 & 0 & 1 & FALSE & 2 & 0: 1347, 1: 76 \\
+shw\_12 & 0 & 1 & FALSE & 2 & 0: 1361, 1: 62 \\
+shw\_13 & 0 & 1 & FALSE & 2 & 0: 1216, 1: 207 \\
+shw\_14 & 0 & 1 & FALSE & 2 & 0: 1258, 1: 165 \\
+shw\_15 & 0 & 1 & FALSE & 2 & 0: 1039, 1: 384 \\
+shw\_16 & 0 & 1 & FALSE & 2 & 0: 1075, 1: 348 \\
+shw\_18 & 0 & 1 & FALSE & 2 & 0: 1349, 1: 74 \\
+shw\_19 & 0 & 1 & FALSE & 2 & 0: 1367, 1: 56 \\
+shw\_20 & 0 & 1 & FALSE & 2 & 0: 1284, 1: 139 \\
+shw\_21 & 0 & 1 & FALSE & 2 & 0: 1312, 1: 111 \\
+shw\_22 & 0 & 1 & FALSE & 2 & 0: 1159, 1: 264 \\
+shw\_23 & 0 & 1 & FALSE & 2 & 0: 1193, 1: 230 \\
+shw\_24 & 0 & 1 & FALSE & 2 & 0: 935, 1: 488 \\
+shw\_25 & 0 & 1 & FALSE & 2 & 0: 989, 1: 434 \\
+NWS\_HW & 0 & 1 & FALSE & 2 & 0: 1379, 1: 44 \\
+mhw\_01 & 0 & 1 & FALSE & 2 & 0: 1399, 1: 24 \\
+mhw\_02 & 0 & 1 & FALSE & 2 & 0: 1406, 1: 17 \\
+mhw\_03 & 0 & 1 & FALSE & 2 & 0: 1368, 1: 55 \\
+mhw\_04 & 0 & 1 & FALSE & 2 & 0: 1388, 1: 35 \\
+mhw\_05 & 0 & 1 & FALSE & 2 & 0: 1303, 1: 120 \\
+mhw\_06 & 0 & 1 & FALSE & 2 & 0: 1313, 1: 110 \\
+mhw\_07 & 0 & 1 & FALSE & 2 & 0: 1160, 1: 263 \\
+mhw\_08 & 0 & 1 & FALSE & 2 & 0: 1205, 1: 218 \\
+mhw\_09 & 0 & 1 & FALSE & 2 & 0: 1412, 1: 11 \\
+mhw\_10 & 0 & 1 & FALSE & 2 & 0: 1414, 1: 9 \\
+mhw\_11 & 0 & 1 & FALSE & 2 & 0: 1397, 1: 26 \\
+mhw\_12 & 0 & 1 & FALSE & 2 & 0: 1410, 1: 13 \\
+mhw\_13 & 0 & 1 & FALSE & 2 & 0: 1341, 1: 82 \\
+mhw\_14 & 0 & 1 & FALSE & 2 & 0: 1357, 1: 66 \\
+mhw\_15 & 0 & 1 & FALSE & 2 & 0: 1253, 1: 170 \\
+mhw\_16 & 0 & 1 & FALSE & 2 & 0: 1279, 1: 144 \\
+mhw\_18 & 0 & 1 & FALSE & 2 & 1: 729, 0: 694 \\
+mhw\_19 & 0 & 1 & FALSE & 2 & 1: 728, 0: 695 \\
+mhw\_20 & 0 & 1 & FALSE & 2 & 1: 747, 0: 676 \\
+mhw\_21 & 0 & 1 & FALSE & 2 & 1: 741, 0: 682 \\
+mhw\_22 & 0 & 1 & FALSE & 2 & 1: 785, 0: 638 \\
+mhw\_23 & 0 & 1 & FALSE & 2 & 1: 779, 0: 644 \\
+mhw\_24 & 0 & 1 & FALSE & 2 & 1: 854, 0: 569 \\
+mhw\_25 & 0 & 1 & FALSE & 2 & 1: 838, 0: 585 \\
+mhw\_26 & 0 & 1 & FALSE & 2 & 0: 1343, 1: 80 \\
+mhw\_27 & 0 & 1 & FALSE & 2 & 0: 1275, 1: 148 \\
+mhw\_28 & 0 & 1 & FALSE & 2 & 0: 1229, 1: 194 \\
+month & 0 & 1 & FALSE & 5 & 7: 309, 8: 303, 6: 295, 5: 270 \\
+year & 0 & 1 & FALSE & 5 & 201: 291, 201: 290, 201: 289, 201: 284 \\
+dow & 0 & 1 & FALSE & 7 & 5: 207, 3: 206, 6: 206, 4: 204 \\
+wDay & 0 & 1 & FALSE & 2 & wee: 1023, wee: 400 \\
+\bottomrule
+\end{longtable}
+
+\textbf{Variable type: numeric}
+
+\begin{longtable}[]{@{}lrrrrrrrrrl@{}}
+\toprule
+skim\_variable & n\_missing & complete\_rate & mean & sd & p0 & p25 &
+p50 & p75 & p100 & hist \\
+\midrule
+\endhead
+hri\_cnt & 0 & 1 & 11.96 & 14.70 & 0.00 & 0.00 & 8.00 & 17.00 & 109.00 &
+▇▁▁▁▁ \\
+hri\_rate & 0 & 1 & 0.55 & 0.85 & 0.00 & 0.00 & 0.25 & 0.70 & 8.92 &
+▇▁▁▁▁ \\
+tmax & 0 & 1 & 86.25 & 5.81 & 63.00 & 82.89 & 86.94 & 90.00 & 102.20 &
+▁▂▆▇▁ \\
+tmin & 0 & 1 & 65.97 & 6.31 & 39.84 & 62.93 & 67.25 & 70.57 & 77.84 &
+▁▁▃▇▅ \\
+tavg & 0 & 1 & 76.11 & 5.70 & 53.12 & 73.03 & 76.89 & 80.22 & 87.80 &
+▁▁▃▇▃ \\
+dpt & 0 & 1 & 18.79 & 3.60 & 2.68 & 16.96 & 19.62 & 21.46 & 24.81 &
+▁▁▃▇▇ \\
+app\_temp & 0 & 1 & 88.68 & 7.14 & 60.94 & 84.48 & 89.60 & 93.68 &
+104.15 & ▁▁▅▇▂ \\
+rh & 0 & 1 & 70.88 & 7.96 & 47.28 & 65.69 & 71.05 & 76.36 & 99.01 &
+▁▅▇▂▁ \\
+imp\_cnt & 0 & 1 & 12.93 & 13.96 & 3.00 & 3.00 & 8.00 & 17.00 & 109.00 &
+▇▁▁▁▁ \\
+imp\_rate & 0 & 1 & 0.34 & 0.39 & 0.05 & 0.11 & 0.22 & 0.44 & 3.98 &
+▇▁▁▁▁ \\
+\bottomrule
+\end{longtable}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dat}\SpecialCharTok{$}\NormalTok{tmax\_cel}\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{tempftoc}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{tmax)) }\CommentTok{\#convert F to C}
+\NormalTok{dat}\SpecialCharTok{$}\NormalTok{HI\_17}\OtherTok{\textless{}{-}} \FunctionTok{as.factor}\NormalTok{(}\FunctionTok{ifelse}\NormalTok{(dat}\SpecialCharTok{$}\NormalTok{tmax\_cel }\SpecialCharTok{\textgreater{}=} \DecValTok{35}\NormalTok{, }\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#filter by region}
+
+\NormalTok{coas}\OtherTok{\textless{}{-}}\NormalTok{ dat }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{subset}\NormalTok{(Region}\SpecialCharTok{==}\StringTok{"Coastal"}\NormalTok{)}
+\NormalTok{pied}\OtherTok{\textless{}{-}}\NormalTok{ dat }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{subset}\NormalTok{(Region}\SpecialCharTok{==}\StringTok{"Piedmont"}\NormalTok{)}
+
+\CommentTok{\#additional definitions for Coastal}
+\NormalTok{coas}\SpecialCharTok{$}\NormalTok{shw\_17 }\OtherTok{\textless{}{-}} \FunctionTok{as.factor}\NormalTok{(}\FunctionTok{ifelse}\NormalTok{(coas}\SpecialCharTok{$}\NormalTok{tmax\_cel }\SpecialCharTok{\textgreater{}=} \DecValTok{35}\NormalTok{, }\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{))}
+\NormalTok{coas}\SpecialCharTok{$}\NormalTok{shw\_26 }\OtherTok{\textless{}{-}} \FunctionTok{as.factor}\NormalTok{(}\FunctionTok{ifelse}\NormalTok{(coas}\SpecialCharTok{$}\NormalTok{app\_temp }\SpecialCharTok{\textgreater{}=} \FloatTok{95.85}\NormalTok{, }\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{)) }\CommentTok{\#85th pct}
+\NormalTok{coas}\SpecialCharTok{$}\NormalTok{shw\_27 }\OtherTok{\textless{}{-}} \FunctionTok{as.factor}\NormalTok{(}\FunctionTok{ifelse}\NormalTok{(coas}\SpecialCharTok{$}\NormalTok{app\_temp }\SpecialCharTok{\textgreater{}=} \FloatTok{97.16}\NormalTok{, }\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{)) }\CommentTok{\#90th pct}
+\NormalTok{coas}\SpecialCharTok{$}\NormalTok{shw\_28 }\OtherTok{\textless{}{-}} \FunctionTok{as.factor}\NormalTok{(}\FunctionTok{ifelse}\NormalTok{(coas}\SpecialCharTok{$}\NormalTok{app\_temp }\SpecialCharTok{\textgreater{}=} \FloatTok{98.99}\NormalTok{, }\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{)) }\CommentTok{\#95th pct}
+
+
+\CommentTok{\#additional definitions for Piedmont}
+\FunctionTok{quantile}\NormalTok{(pied}\SpecialCharTok{$}\NormalTok{app\_temp, }\AttributeTok{probs =} \FunctionTok{c}\NormalTok{(}\FloatTok{0.95}\NormalTok{, }\FloatTok{0.90}\NormalTok{, }\FloatTok{0.85}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##      95%      90%      85% 
+## 98.52767 96.66003 95.47549
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pied}\SpecialCharTok{$}\NormalTok{shw\_17 }\OtherTok{\textless{}{-}} \FunctionTok{as.factor}\NormalTok{(}\FunctionTok{ifelse}\NormalTok{(pied}\SpecialCharTok{$}\NormalTok{tmax\_cel }\SpecialCharTok{\textgreater{}=} \DecValTok{35}\NormalTok{, }\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{))}
+\NormalTok{pied}\SpecialCharTok{$}\NormalTok{shw\_26 }\OtherTok{\textless{}{-}} \FunctionTok{as.factor}\NormalTok{(}\FunctionTok{ifelse}\NormalTok{(pied}\SpecialCharTok{$}\NormalTok{app\_temp }\SpecialCharTok{\textgreater{}=} \FloatTok{95.47}\NormalTok{, }\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{)) }\CommentTok{\#85th pct}
+\NormalTok{pied}\SpecialCharTok{$}\NormalTok{shw\_27 }\OtherTok{\textless{}{-}} \FunctionTok{as.factor}\NormalTok{(}\FunctionTok{ifelse}\NormalTok{(pied}\SpecialCharTok{$}\NormalTok{app\_temp }\SpecialCharTok{\textgreater{}=} \FloatTok{96.66}\NormalTok{, }\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{)) }\CommentTok{\#90th pct}
+\NormalTok{pied}\SpecialCharTok{$}\NormalTok{shw\_28 }\OtherTok{\textless{}{-}} \FunctionTok{as.factor}\NormalTok{(}\FunctionTok{ifelse}\NormalTok{(pied}\SpecialCharTok{$}\NormalTok{app\_temp }\SpecialCharTok{\textgreater{}=} \FloatTok{98.52}\NormalTok{, }\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{)) }\CommentTok{\#95th pct}
+
+\NormalTok{coas}\SpecialCharTok{$}\NormalTok{pop}\OtherTok{\textless{}{-}}\FunctionTok{as.numeric}\NormalTok{(}\DecValTok{2741101}\NormalTok{)}
+\NormalTok{pied}\SpecialCharTok{$}\NormalTok{pop}\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(}\DecValTok{5571983}\NormalTok{)}
+\CommentTok{\#Coastal: 2741101}
+\CommentTok{\#Piedmont: 5571983}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+
+#model comparision - Coastal region
+
+
+```r
+#Coastal
+library(MASS)
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## Attaching package: 'MASS'
+\end{verbatim}
+
+\begin{verbatim}
+## The following object is masked from 'package:dplyr':
+## 
+##     select
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{c1}\OtherTok{\textless{}{-}} \FunctionTok{glm.nb}\NormalTok{(imp\_cnt}\SpecialCharTok{\textasciitilde{}}\FunctionTok{as.factor}\NormalTok{(shw\_15)}\SpecialCharTok{+}\NormalTok{wDay}\SpecialCharTok{+}\NormalTok{month}\SpecialCharTok{+}\NormalTok{year}\SpecialCharTok{+}\NormalTok{NWS\_HW}\SpecialCharTok{+}\FunctionTok{offset}\NormalTok{(}\FunctionTok{log}\NormalTok{(pop)),}\AttributeTok{data=}\NormalTok{coas)}
+\NormalTok{c2}\OtherTok{\textless{}{-}} \FunctionTok{glm.nb}\NormalTok{(imp\_cnt}\SpecialCharTok{\textasciitilde{}}\FunctionTok{as.factor}\NormalTok{(shw\_08)}\SpecialCharTok{+}\NormalTok{wDay}\SpecialCharTok{+}\NormalTok{month}\SpecialCharTok{+}\NormalTok{year}\SpecialCharTok{+}\NormalTok{NWS\_HW}\SpecialCharTok{+}\FunctionTok{offset}\NormalTok{(}\FunctionTok{log}\NormalTok{(pop)),}\AttributeTok{data=}\NormalTok{coas)}
+\NormalTok{c3}\OtherTok{\textless{}{-}} \FunctionTok{glm.nb}\NormalTok{(imp\_cnt}\SpecialCharTok{\textasciitilde{}}\FunctionTok{as.factor}\NormalTok{(shw\_07)}\SpecialCharTok{+}\NormalTok{wDay}\SpecialCharTok{+}\NormalTok{month}\SpecialCharTok{+}\NormalTok{year}\SpecialCharTok{+}\NormalTok{NWS\_HW}\SpecialCharTok{+}\FunctionTok{offset}\NormalTok{(}\FunctionTok{log}\NormalTok{(pop)),}\AttributeTok{data=}\NormalTok{coas)}
+\NormalTok{c4}\OtherTok{\textless{}{-}} \FunctionTok{glm.nb}\NormalTok{(imp\_cnt}\SpecialCharTok{\textasciitilde{}}\FunctionTok{as.factor}\NormalTok{(shw\_16)}\SpecialCharTok{+}\NormalTok{wDay}\SpecialCharTok{+}\NormalTok{month}\SpecialCharTok{+}\NormalTok{year}\SpecialCharTok{+}\NormalTok{NWS\_HW}\SpecialCharTok{+}\FunctionTok{offset}\NormalTok{(}\FunctionTok{log}\NormalTok{(pop)),}\AttributeTok{data=}\NormalTok{coas)}
+\NormalTok{c5}\OtherTok{\textless{}{-}} \FunctionTok{glm.nb}\NormalTok{(imp\_cnt}\SpecialCharTok{\textasciitilde{}}\FunctionTok{as.factor}\NormalTok{(mhw\_07)}\SpecialCharTok{+}\NormalTok{wDay}\SpecialCharTok{+}\NormalTok{month}\SpecialCharTok{+}\NormalTok{year}\SpecialCharTok{+}\NormalTok{NWS\_HW}\SpecialCharTok{+}\FunctionTok{offset}\NormalTok{(}\FunctionTok{log}\NormalTok{(pop)),}\AttributeTok{data=}\NormalTok{coas)}
+
+\FunctionTok{anova}\NormalTok{(c1,c2,c3,c4,c5, }\AttributeTok{test=}\StringTok{"Chisq"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Likelihood ratio tests of Negative Binomial Models
+## 
+## Response: imp_cnt
+##                                                                 Model    theta
+## 1 as.factor(shw_15) + wDay + month + year + NWS_HW + offset(log(pop)) 4.864392
+## 2 as.factor(shw_08) + wDay + month + year + NWS_HW + offset(log(pop)) 4.617069
+## 3 as.factor(shw_07) + wDay + month + year + NWS_HW + offset(log(pop)) 4.521469
+## 4 as.factor(shw_16) + wDay + month + year + NWS_HW + offset(log(pop)) 4.515428
+## 5 as.factor(mhw_07) + wDay + month + year + NWS_HW + offset(log(pop)) 4.320588
+##   Resid. df    2 x log-lik.   Test    df   LR stat. Pr(Chi)
+## 1       692       -4166.515                                
+## 2       692       -4192.897 1 vs 2     0 -26.382418       1
+## 3       692       -4199.178 2 vs 3     0  -6.280587       1
+## 4       692       -4210.087 3 vs 4     0 -10.909058       1
+## 5       692       -4222.149 4 vs 5     0 -12.061846       1
+\end{verbatim}
+
+\#model comparision - Piedmont region
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#Piedmont}
+
+\NormalTok{p1}\OtherTok{\textless{}{-}} \FunctionTok{glm.nb}\NormalTok{(imp\_cnt}\SpecialCharTok{\textasciitilde{}}\FunctionTok{as.factor}\NormalTok{(shw\_08)}\SpecialCharTok{+}\NormalTok{wDay}\SpecialCharTok{+}\NormalTok{month}\SpecialCharTok{+}\NormalTok{year}\SpecialCharTok{+}\NormalTok{NWS\_HW}\SpecialCharTok{+}\FunctionTok{offset}\NormalTok{(}\FunctionTok{log}\NormalTok{(pop)),}\AttributeTok{data=}\NormalTok{pied)}
+\NormalTok{p2}\OtherTok{\textless{}{-}} \FunctionTok{glm.nb}\NormalTok{(imp\_cnt}\SpecialCharTok{\textasciitilde{}}\FunctionTok{as.factor}\NormalTok{(shw\_07)}\SpecialCharTok{+}\NormalTok{wDay}\SpecialCharTok{+}\NormalTok{month}\SpecialCharTok{+}\NormalTok{year}\SpecialCharTok{+}\NormalTok{NWS\_HW}\SpecialCharTok{+}\FunctionTok{offset}\NormalTok{(}\FunctionTok{log}\NormalTok{(pop)),}\AttributeTok{data=}\NormalTok{pied)}
+\NormalTok{p3}\OtherTok{\textless{}{-}} \FunctionTok{glm.nb}\NormalTok{(imp\_cnt}\SpecialCharTok{\textasciitilde{}}\FunctionTok{as.factor}\NormalTok{(shw\_15)}\SpecialCharTok{+}\NormalTok{wDay}\SpecialCharTok{+}\NormalTok{month}\SpecialCharTok{+}\NormalTok{year}\SpecialCharTok{+}\NormalTok{NWS\_HW}\SpecialCharTok{+}\FunctionTok{offset}\NormalTok{(}\FunctionTok{log}\NormalTok{(pop)),}\AttributeTok{data=}\NormalTok{pied)}
+\NormalTok{p4}\OtherTok{\textless{}{-}} \FunctionTok{glm.nb}\NormalTok{(imp\_cnt}\SpecialCharTok{\textasciitilde{}}\FunctionTok{as.factor}\NormalTok{(mhw\_07)}\SpecialCharTok{+}\NormalTok{wDay}\SpecialCharTok{+}\NormalTok{month}\SpecialCharTok{+}\NormalTok{year}\SpecialCharTok{+}\NormalTok{NWS\_HW}\SpecialCharTok{+}\FunctionTok{offset}\NormalTok{(}\FunctionTok{log}\NormalTok{(pop)),}\AttributeTok{data=}\NormalTok{pied)}
+\NormalTok{p5}\OtherTok{\textless{}{-}} \FunctionTok{glm.nb}\NormalTok{(imp\_cnt}\SpecialCharTok{\textasciitilde{}}\FunctionTok{as.factor}\NormalTok{(mhw\_28)}\SpecialCharTok{+}\NormalTok{wDay}\SpecialCharTok{+}\NormalTok{month}\SpecialCharTok{+}\NormalTok{year}\SpecialCharTok{+}\NormalTok{NWS\_HW}\SpecialCharTok{+}\FunctionTok{offset}\NormalTok{(}\FunctionTok{log}\NormalTok{(pop)),}\AttributeTok{data=}\NormalTok{pied)}
+
+\FunctionTok{anova}\NormalTok{(p1,p2,p3,p4,p5, }\AttributeTok{test=}\StringTok{"Chisq"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Likelihood ratio tests of Negative Binomial Models
+## 
+## Response: imp_cnt
+##                                                                 Model    theta
+## 1 as.factor(shw_08) + wDay + month + year + NWS_HW + offset(log(pop)) 4.191791
+## 2 as.factor(shw_07) + wDay + month + year + NWS_HW + offset(log(pop)) 4.181156
+## 3 as.factor(shw_15) + wDay + month + year + NWS_HW + offset(log(pop)) 4.147594
+## 4 as.factor(mhw_07) + wDay + month + year + NWS_HW + offset(log(pop)) 3.979051
+## 5 as.factor(mhw_28) + wDay + month + year + NWS_HW + offset(log(pop)) 3.852728
+##   Resid. df    2 x log-lik.   Test    df    LR stat. Pr(Chi)
+## 1       707       -4549.352                                 
+## 2       707       -4549.650 1 vs 2     0  -0.2979834       1
+## 3       707       -4559.350 2 vs 3     0  -9.7000418       1
+## 4       707       -4569.999 3 vs 4     0 -10.6486262       1
+## 5       707       -4587.849 4 vs 5     0 -17.8503065       1
+\end{verbatim}
+
+\end{document}

@@ -1,0 +1,94 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+```{r}
+library(tidyverse)
+library(lubridate)
+library(weathermetrics)
+library(ThermIndex)
+library(janitor)
+library(skimr)
+#library(rcompanion)
+
+dat<- read_csv("/work/jessebell/puvvula/h_def_2021nov.csv")
+
+dat$date <- as.Date(dat$date, format = "%m/%d/%Y")
+dat$month<- as.factor(month(dat$date))
+dat$year<- as.factor(format(dat$date, '%Y'))
+dat$dow <- wday(as.Date(dat$date, format = "%m/%d/%Y"))
+weekdays1 <- c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')
+dat$wDay <- factor((weekdays(dat$date) %in% weekdays1), 
+                       levels=c(FALSE, TRUE), labels=c('weekend', 'weekday'))
+
+fct<- c(2, 13:68)
+dat[,fct]<-lapply(dat[,fct],factor)
+skim(dat)
+
+dat$tmax_cel<- as.numeric(tempftoc(dat$tmax)) #convert F to C
+dat$HI_17<- as.factor(ifelse(dat$tmax_cel >= 35, 1,0))
+```
+
+```{r}
+#filter by region
+
+coas<- dat %>% subset(Region=="Coastal")
+pied<- dat %>% subset(Region=="Piedmont")
+
+#additional definitions for Coastal
+coas$shw_17 <- as.factor(ifelse(coas$tmax_cel >= 35, 1,0))
+coas$shw_26 <- as.factor(ifelse(coas$app_temp >= 95.85, 1,0)) #85th pct
+coas$shw_27 <- as.factor(ifelse(coas$app_temp >= 97.16, 1,0)) #90th pct
+coas$shw_28 <- as.factor(ifelse(coas$app_temp >= 98.99, 1,0)) #95th pct
+
+
+#additional definitions for Piedmont
+quantile(pied$app_temp, probs = c(0.95, 0.90, 0.85))
+
+pied$shw_17 <- as.factor(ifelse(pied$tmax_cel >= 35, 1,0))
+pied$shw_26 <- as.factor(ifelse(pied$app_temp >= 95.47, 1,0)) #85th pct
+pied$shw_27 <- as.factor(ifelse(pied$app_temp >= 96.66, 1,0)) #90th pct
+pied$shw_28 <- as.factor(ifelse(pied$app_temp >= 98.52, 1,0)) #95th pct
+
+coas$pop<-as.numeric(2741101)
+pied$pop<- as.numeric(5571983)
+#Coastal: 2741101
+#Piedmont: 5571983
+
+```
+```
+
+
+#model comparision - Coastal region
+
+```{r}
+#Coastal
+library(MASS)
+
+c1<- glm.nb(imp_cnt~as.factor(shw_15)+wDay+month+year+NWS_HW+offset(log(pop)),data=coas)
+c2<- glm.nb(imp_cnt~as.factor(shw_08)+wDay+month+year+NWS_HW+offset(log(pop)),data=coas)
+c3<- glm.nb(imp_cnt~as.factor(shw_07)+wDay+month+year+NWS_HW+offset(log(pop)),data=coas)
+c4<- glm.nb(imp_cnt~as.factor(shw_16)+wDay+month+year+NWS_HW+offset(log(pop)),data=coas)
+c5<- glm.nb(imp_cnt~as.factor(mhw_07)+wDay+month+year+NWS_HW+offset(log(pop)),data=coas)
+
+anova(c1,c2,c3,c4,c5, test="Chisq")
+
+```
+
+
+#model comparision - Piedmont region
+
+```{r}
+#Piedmont
+
+p1<- glm.nb(imp_cnt~as.factor(shw_08)+wDay+month+year+NWS_HW+offset(log(pop)),data=pied)
+p2<- glm.nb(imp_cnt~as.factor(shw_07)+wDay+month+year+NWS_HW+offset(log(pop)),data=pied)
+p3<- glm.nb(imp_cnt~as.factor(shw_15)+wDay+month+year+NWS_HW+offset(log(pop)),data=pied)
+p4<- glm.nb(imp_cnt~as.factor(mhw_07)+wDay+month+year+NWS_HW+offset(log(pop)),data=pied)
+p5<- glm.nb(imp_cnt~as.factor(mhw_28)+wDay+month+year+NWS_HW+offset(log(pop)),data=pied)
+
+anova(p1,p2,p3,p4,p5, test="Chisq")
+
+```
+
