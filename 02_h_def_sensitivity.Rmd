@@ -5,8 +5,7 @@ date: "9/16/2021"
 output: pdf_document
 ---
 
-```{r, echo=FALSE}
-
+```{r}
 library(tidyverse)
 library(lubridate)
 library(weathermetrics)
@@ -14,7 +13,10 @@ library(ThermIndex)
 library(janitor)
 library(skimr)
 #library(rcompanion)
+```
 
+
+```{r, echo=FALSE}
 dat<- read_csv("/work/jessebell/puvvula/h_def_2021nov.csv")
 
 dat$date <- as.Date(dat$date, format = "%m/%d/%Y")
@@ -161,27 +163,82 @@ ggplot(res, aes(x = as.factor(order), y = irr, ymin = lcl, ymax = ucl,
   facet_grid(.~Heat_wave_definition, scales = "free", switch = "x", space = "free_x")
 
 ggsave("/work/jessebell/puvvula/h_def_adj.tiff", 
-       width = 12,height = 6)
+       width = 18,height = 6)
 ```
 
 
 ```{r}
-#long to wide data format
-#original data
+#
 dat<- read_csv("/work/jessebell/puvvula/h_def_2021nov.csv")
+dat_n<- dat %>% select("date", "Region", "shw_08", "shw_15", "NWS_HW")
 
-#subset filtered by final variables
-dat_n<- dat %>% select("date", "Region", "tmax", "tavg","mhw_02", "mhw_13", "NWS_HW","imp_rate")
-dat[,c(2, 5:7)]<-lapply(dat[,c(2, 5:7)],factor)
+#long to wide
+dat_w<- dat_n %>% pivot_wider(names_from = Region, values_from = c(shw_08,shw_15, NWS_HW))
 
-df<- dat_n %>% filter(Region=="Coastal")
+#McNemar test (Matched/paired t-test)
+#Comparing SHW_15 - coastal with shw_08 - piedmont
+table(dat_w$shw_15_Coastal, dat_w$shw_08_Piedmont) #2 by 2 table
+prop.table(table(dat_w$shw_15_Coastal, dat_w$shw_08_Piedmont),margin = 2)*100 #proportion table
+mcnemar.test(dat_w$shw_15_Coastal, dat_w$shw_08_Piedmont)
 
-#Matched/paired t-test
-table(df$mhw_13, df$NWS_HW) #2 by 2 table
-prop.table(table(df$mhw_13, df$NWS_HW),margin = 2)*100 #proportion table
-mcnemar.test(df$mhw_13, df$NWS_HW) # McNemar test (for binary data)
-#t.test(x$HW_cos, x$HW_pied, paired = TRUE, alternative = "two.sided") #paired t test
+#COASTAL : Comparing shw_15 with NWS_HW
+table(dat_w$shw_15_Coastal, dat_w$NWS_HW_Coastal) #2 by 2 table
+prop.table(table(dat_w$shw_15_Coastal, dat_w$NWS_HW_Coastal),margin = 2)*100 #proportion table
+mcnemar.test(dat_w$shw_15_Coastal, dat_w$NWS_HW_Coastal)
 
-#Coastal: McNemar's chi-squared = 3.7812, df = 1, p-value = 0.05183
-#Piedmont: McNemar's chi-squared = 16.457, df = 1, p-value = 4.976e-05
+#PIEDMONT : Comparing shw_08 with NWS_HW
+table(dat_w$shw_08_Piedmont, dat_w$NWS_HW_Piedmont) #2 by 2 table
+prop.table(table(dat_w$shw_08_Piedmont, dat_w$NWS_HW_Piedmont),margin = 2)*100 #proportion table
+mcnemar.test(dat_w$shw_08_Piedmont, dat_w$NWS_HW_Piedmont)
+```
+
+
+```{r}
+#figure 2
+dat<- read_csv("/work/jessebell/puvvula/h_def_2021nov.csv") %>% select("date", "Region", "tmax", "tavg","shw_08", "shw_15", "NWS_HW","imp_rate")
+
+#subset region
+df<- dat %>% filter(Region=="Coastal")
+df$hw<- factor(as.numeric(as.factor(!df$shw_15):as.factor(!df$NWS_HW)))
+
+#heat wave levels: 
+#1 = hw=1 & NWS=1 || 2 = hw=1 & NWS=0 || 3 = hw=0 & NWS=1 || 4 = hw=0 & NWS=0
+
+df$tmax_c<- ((df$tmax - 32) * 0.5555556)
+
+
+df$Heat_wave <- recode(df$hw,
+                       `1`="EPI_HW/NWS_HW",
+                       `2`="EPI_HW/NWS_NHW",
+                       `3`="EPI_NHW/NWS_HW",
+                       `4`="EPI_NHW/NWS_NHW")
+
+cbbPalette <- c("#D55E00", "#0072B2", "#009E73", "#E69F00")
+ggplot(df, aes(x=tmax_c, y=imp_rate, color=Heat_wave))+
+  geom_point(size=1)+
+  scale_colour_manual(values=cbbPalette)+
+  labs(x="Daily maximum temperature (°C)", 
+       y="Rate of HRI Morbidity (per 100,000)")+
+  scale_x_continuous(breaks = seq(25, 40, 2),limits=c(25, 40))+
+  theme_bw()+
+  theme(axis.line = element_line(colour = "black"))+
+  theme(panel.border = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        plot.title = element_text(hjust = 0.5),
+        text=element_text(size=12,  family="Arial Black"),
+        axis.text = element_text(size = 8, family="Arial Black"),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.text.align = 0,
+        strip.text=element_text(size=5.5),
+        strip.placement = "outside",
+        legend.box.just = "right",
+        legend.spacing = unit(0, "cm"),
+        legend.position = c(0.85,0.85),
+        legend.box = "horizontal")
+
+
+
+```
 
