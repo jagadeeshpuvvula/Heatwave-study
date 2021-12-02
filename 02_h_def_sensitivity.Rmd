@@ -91,14 +91,15 @@ t.test(coas$imp_rate ~ factor(coas$NWS_HW),
 
 library(MASS)
 
+coas$pop<- as.numeric(2741101)
 pied$pop<- as.numeric(5571983)
 #Coastal: 2741101
 #Piedmont: 5571983
 
 hw1<- glm.nb(imp_cnt~as.factor(shw_01)
-             +wDay+month+year+NWS_HW+
+             +rh+wDay+month+year+NWS_HW+
                offset(log(pop)),
-             data=pied)
+             data=coas)
 (est <- cbind(Estimate = coef(hw1), confint(hw1)))
 exp(est)
 
@@ -106,6 +107,13 @@ exp(est)
 anova(hw1,hw2,test="Chisq")
 ```
 
+hw1<- glm.nb(imp_cnt~as.factor(shw_28)
+             +rh+wDay+month+year+NWS_HW+
+               offset(log(pop)),
+             data=pied)
+(est <- cbind(Estimate = coef(hw1), confint(hw1)))
+exp(est)
+summary(hw1)
 
 ```{r}
 ################################################################3
@@ -115,8 +123,9 @@ library(tidyverse)
 
 #Data for un-adjusted results
 #res<-read_csv("/work/jessebell/puvvula/heatwave_tbl.csv")
+#res<- read_csv("/work/jessebell/puvvula/h_def_adjusted.csv")
 
-res<- read_csv("/work/jessebell/puvvula/h_def_adjusted.csv")
+res<- read_csv("/work/jessebell/puvvula/h_def_adjusted_rh.csv")
 cbbPalette <- c("#D55E00", "#0072B2", "#009E73", "#E69F00")
 
 res$Region<-factor(res$Region, levels = c("Coastal", "Piedmont"))
@@ -138,7 +147,7 @@ ggplot(res, aes(x = as.factor(order), y = irr, ymin = lcl, ymax = ucl,
   geom_pointrange(aes(col = Metric), 
                   position=position_dodge(width=1.5),size = 0.5) +
   ylab("Incidence rate ratio [95% CI]") +
-  scale_y_continuous(breaks = seq(-1, 8, 1),limits=c(-1, 8))+
+  scale_y_continuous(breaks = seq(-1, 5, 1),limits=c(-1, 5))+
   geom_hline(aes(yintercept = 1)) + 
   scale_colour_manual(values=cbbPalette) + 
   ggtitle("")+
@@ -158,49 +167,49 @@ ggplot(res, aes(x = as.factor(order), y = irr, ymin = lcl, ymax = ucl,
         strip.placement = "outside",
         legend.box.just = "right",
         legend.spacing = unit(0, "cm"),
-        legend.position = c(0.83,0.90),
+        legend.position = c(0.87,0.95),
         legend.box = "horizontal")+
   facet_grid(.~Heat_wave_definition, scales = "free", switch = "x", space = "free_x")
 
 ggsave("/work/jessebell/puvvula/h_def_adj.tiff", 
-       width = 18,height = 6)
+       width = 18,height = 8)
 ```
 
 
 ```{r}
 #
 dat<- read_csv("/work/jessebell/puvvula/h_def_2021nov.csv")
-dat_n<- dat %>% select("date", "Region", "shw_08", "shw_15", "NWS_HW")
+dat_n<- dat %>% select("date", "Region", "shw_07", "shw_15", "NWS_HW")
 
 #long to wide
-dat_w<- dat_n %>% pivot_wider(names_from = Region, values_from = c(shw_08,shw_15, NWS_HW))
+dat_w<- dat_n %>% pivot_wider(names_from = Region, values_from = c(shw_07,shw_15, NWS_HW))
 
 #McNemar test (Matched/paired t-test)
 #Comparing SHW_15 - coastal with shw_08 - piedmont
-table(dat_w$shw_15_Coastal, dat_w$shw_08_Piedmont) #2 by 2 table
-prop.table(table(dat_w$shw_15_Coastal, dat_w$shw_08_Piedmont),margin = 2)*100 #proportion table
-mcnemar.test(dat_w$shw_15_Coastal, dat_w$shw_08_Piedmont)
+table(dat_w$shw_15_Coastal, dat_w$shw_07_Piedmont) #2 by 2 table
+prop.table(table(dat_w$shw_15_Coastal, dat_w$shw_07_Piedmont),margin = 2)*100 #proportion table
+mcnemar.test(dat_w$shw_15_Coastal, dat_w$shw_07_Piedmont)
 
 #COASTAL : Comparing shw_15 with NWS_HW
 table(dat_w$shw_15_Coastal, dat_w$NWS_HW_Coastal) #2 by 2 table
 prop.table(table(dat_w$shw_15_Coastal, dat_w$NWS_HW_Coastal),margin = 2)*100 #proportion table
 mcnemar.test(dat_w$shw_15_Coastal, dat_w$NWS_HW_Coastal)
 
-#PIEDMONT : Comparing shw_08 with NWS_HW
-table(dat_w$shw_08_Piedmont, dat_w$NWS_HW_Piedmont) #2 by 2 table
-prop.table(table(dat_w$shw_08_Piedmont, dat_w$NWS_HW_Piedmont),margin = 2)*100 #proportion table
-mcnemar.test(dat_w$shw_08_Piedmont, dat_w$NWS_HW_Piedmont)
+#PIEDMONT : Comparing shw_07 with NWS_HW
+table(dat_w$shw_07_Piedmont, dat_w$NWS_HW_Piedmont) #2 by 2 table
+prop.table(table(dat_w$shw_07_Piedmont, dat_w$NWS_HW_Piedmont),margin = 2)*100 #proportion table
+mcnemar.test(dat_w$shw_07_Piedmont, dat_w$NWS_HW_Piedmont)
 ```
 
 
 ```{r}
 #figure 2
-dat<- read_csv("/work/jessebell/puvvula/h_def_2021nov.csv") %>% select("date", "Region", "tmax", "tavg","shw_08", "shw_15", "NWS_HW","imp_rate")
+dat<- read_csv("/work/jessebell/puvvula/h_def_2021nov.csv") %>% select("date", "Region", "tmax", "tavg","shw_07", "shw_15", "NWS_HW","imp_rate")
 
 
 #subset region
 df<- dat %>% filter(Region=="Coastal")
-df$hw<- factor(as.numeric(as.factor(!df$shw_08):as.factor(!df$NWS_HW)))
+df$hw<- factor(as.numeric(as.factor(!df$shw_15):as.factor(!df$NWS_HW)))
 
 #heat wave levels: 
 #1 = hw=1 & NWS=1 || 2 = hw=1 & NWS=0 || 3 = hw=0 & NWS=1 || 4 = hw=0 & NWS=0
@@ -208,10 +217,10 @@ df$hw<- factor(as.numeric(as.factor(!df$shw_08):as.factor(!df$NWS_HW)))
 df$tmax_c<- ((df$tmax - 32) * 0.5555556)
 
 df$Heat_wave <- recode(df$hw,
-                       `1`="SWH_08_HW/NWS_HW",
-                       `2`="SWH_08_HW/NWS_NHW",
-                       `3`="SWH_08_NHW/NWS_HW",
-                       `4`="SWH_08_NHW/NWS_NHW")
+                       `1`="SWH_15_HW/NWS_HW",
+                       `2`="SWH_15_HW/NWS_NHW",
+                       `3`="SWH_15_NHW/NWS_HW",
+                       `4`="SWH_15_NHW/NWS_NHW")
 
 cbbPalette <- c("#D55E00", "#0072B2", "#009E73", "#E69F00")
 ggplot(df, aes(x=tmax_c, y=imp_rate, color=Heat_wave))+
@@ -246,7 +255,7 @@ ggsave("/work/jessebell/puvvula/h_def_comp_coas.tiff",
 
 #subset region
 df<- dat %>% filter(Region=="Piedmont")
-df$hw<- factor(as.numeric(as.factor(!df$shw_15):as.factor(!df$NWS_HW)))
+df$hw<- factor(as.numeric(as.factor(!df$shw_07):as.factor(!df$NWS_HW)))
 
 #heat wave levels: 
 #1 = hw=1 & NWS=1 || 2 = hw=1 & NWS=0 || 3 = hw=0 & NWS=1 || 4 = hw=0 & NWS=0
@@ -254,12 +263,12 @@ df$hw<- factor(as.numeric(as.factor(!df$shw_15):as.factor(!df$NWS_HW)))
 df$tmin_c<- ((df$tavg - 32) * 0.5555556)
 
 df$Heat_wave <- recode(df$hw,
-                       `1`="SWH_15_HW/NWS_HW",
-                       `2`="SWH_15_HW/NWS_NHW",
-                       `3`="SWH_15_NHW/NWS_HW",
-                       `4`="SWH_15_NHW/NWS_NHW")
+                       `1`="SWH_07_HW/NWS_HW",
+                       `2`="SWH_07_HW/NWS_NHW",
+                       `3`="SWH_07_NHW/NWS_HW",
+                       `4`="SWH_07_NHW/NWS_NHW")
 
-cbbPalette <- c("#D55E00", "#0072B2",  "#E69F00")
+cbbPalette <- c("#D55E00", "#0072B2", "#009E73", "#E69F00")
 ggplot(df, aes(x=tmin_c, y=imp_rate, color=Heat_wave))+
   geom_point(size=1)+
   scale_colour_manual(values=cbbPalette)+
