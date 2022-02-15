@@ -222,9 +222,9 @@ df$Heat_wave <- recode(df$hw,
                        `3`="SWH_15_NHW/NWS_HW",
                        `4`="SWH_15_NHW/NWS_NHW")
 
-cbbPalette <- c("#D55E00", "#0072B2", "#009E73", "#E69F00")
+cbbPalette <- c("#D55E00", "#0072B2", "#E69F00")
 ggplot(df, aes(x=tmax_c, y=imp_rate, color=Heat_wave))+
-  geom_point(size=1)+
+  geom_point(size=1.8)+
   scale_colour_manual(values=cbbPalette)+
   labs(x="Daily maximum temperature (°C)", 
        y="Rate of HRI Morbidity (per 100,000)")+
@@ -238,16 +238,17 @@ ggplot(df, aes(x=tmax_c, y=imp_rate, color=Heat_wave))+
         axis.line = element_line(colour = "black"),
         plot.title = element_text(hjust = 0.5),
         text=element_text(size=12,  family="Arial Black"),
-        axis.text = element_text(size = 8, family="Arial Black"),
+        axis.text = element_text(size = 12, family="Arial Black"),
         axis.text.x = element_text(angle = 0, hjust = 0.5),
         legend.text.align = 0,
-        strip.text=element_text(size=5.5),
+        strip.text=element_text(size=12),
         strip.placement = "outside",
         legend.box.just = "right",
         legend.spacing = unit(0, "cm"),
         legend.position = c(0.18,0.87),
-        legend.box = "horizontal")
-ggsave("/work/jessebell/puvvula/h_def_comp_coas.tiff", 
+        legend.box = "horizontal")+ 
+  guides(colour = guide_legend(override.aes = list(size=8)))
+ggsave("/work/jessebell/puvvula/h_def_comp_coas111.tiff", 
        width = 8,height = 6)
 
 ###############
@@ -268,13 +269,14 @@ df$Heat_wave <- recode(df$hw,
                        `3`="SWH_07_NHW/NWS_HW",
                        `4`="SWH_07_NHW/NWS_NHW")
 
-cbbPalette <- c("#D55E00", "#0072B2", "#009E73", "#E69F00")
+cbbPalette <- c("#D55E00", "#0072B2", "#E69F00")
 ggplot(df, aes(x=tmin_c, y=imp_rate, color=Heat_wave))+
-  geom_point(size=1)+
+  geom_point(size=1.8)+
   scale_colour_manual(values=cbbPalette)+
-  labs(x="Daily minimum temperature (°C)", 
+  labs(x="Daily maximum temperature (°C)", 
        y="Rate of HRI Morbidity (per 100,000)")+
-  scale_x_continuous(breaks = seq(20, 32, 2),limits=c(20, 32))+
+  scale_x_continuous(breaks = seq(20, 32, 2),limits=c(20,32))+
+  scale_y_continuous(breaks = seq(0, 2, 0.5),limits=c(0,2))+
   theme_bw()+
   theme(axis.line = element_line(colour = "black"))+
   theme(panel.border = element_blank(),
@@ -283,18 +285,18 @@ ggplot(df, aes(x=tmin_c, y=imp_rate, color=Heat_wave))+
         axis.line = element_line(colour = "black"),
         plot.title = element_text(hjust = 0.5),
         text=element_text(size=12,  family="Arial Black"),
-        axis.text = element_text(size = 8, family="Arial Black"),
+        axis.text = element_text(size = 12, family="Arial Black"),
         axis.text.x = element_text(angle = 0, hjust = 0.5),
         legend.text.align = 0,
-        strip.text=element_text(size=5.5),
+        strip.text=element_text(size=12),
         strip.placement = "outside",
         legend.box.just = "right",
         legend.spacing = unit(0, "cm"),
-        legend.position = c(0.2,0.87),
-        legend.box = "horizontal")
+        legend.position = c(0.18,0.87),
+        legend.box = "horizontal")+ 
+  guides(colour = guide_legend(override.aes = list(size=8)))
 
-
-ggsave("/work/jessebell/puvvula/h_def_comp_pied.tiff", 
+ggsave("/work/jessebell/puvvula/h_def_comp_pied222.tiff", 
        width = 8,height = 6)
 ```
 
