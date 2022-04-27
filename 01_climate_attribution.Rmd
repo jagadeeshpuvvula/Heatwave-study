@@ -44,7 +44,7 @@ myvars <- c("Rate_ER_visit","Count_ER_visit","Avg_temp","Max_temp", "Min_temp", 
             "RH", "MAT","Steadman_HI", "NWS_HI", "Humidex", "TDI","EHF",
             )
 dat<- piedmont[myvars]
-M<-cor(dat)
+M<-cor(dat, method = "spearman", use = "complete.obs")
 
 ##################### CORR MATRIX- MATRIX FUNCTION #############
 cor.mtest <- function(mat, ...) {
@@ -188,6 +188,50 @@ ggsave("/work/jessebell/puvvula/supp_2a.tiff",
 ```
 
 
+```{r}
+#future climate change group differences
+dat_three<- read_csv("/work/jessebell/puvvula/fig_three.csv")
+dat_three$RCP<-as.factor(dat_three$RCP)
+dat_three$temp_c <- ((dat_three$Max_temp - 32) * 0.5555556)
+
+#comparing hot days
+dat_three$hot_day<- as.factor(cut(dat_three$temp_c,c(0,29.99,40), labels=c(0,1)))
+
+#filter by below for timeseries wise comparison
+#filter just by region for rcp scale comparison
+coastal_dat<-filter(dat_three,region=="Coastal" & RCP=="8.5")
+pied_dat<-filter(dat_three,region=="Piedmont" & RCP=="8.5")
+
+tbl<-table(coastal_dat$RCP, coastal_dat$hot_day)
+chisq.test(tbl)
+
+tbl<-table(pied_dat$Time_period, pied_dat$hot_day)
+chisq.test(tbl)
+
+#comparing HRI - future climate change
+#mean difference between two groups
+pied_dattt<-filter(dat_three,region=="Piedmont" & period=="lc" & Model=="GFDL")
+
+#check for mid scenario and late scenario
+#high to low emission scenario HRI comparison
+pied_dattt %>% 
+  group_by(RCP) %>% 
+  summarize(q1 = median(pred_ER))
+
+t.test(pied_dattt$pred_ER ~ pied_dattt$RCP, paired=T)
+
+#HRI comparison across time frame ?ANOVA
+pd_dat<-filter(dat_three,region=="Piedmont" & RCP=="8.5" & Model=="CCSM4")
+
+group_by(pd_dat, period) %>%
+  summarise(
+    count = n(),
+    medi = median(pred_ER, na.rm = TRUE))
+res.aov <- aov(pred_ER ~ period, data = pd_dat)
+summary(res.aov)
+```
+
+
 ```{r, echo=FALSE}
 # Manuscript figures
 #Figure. 1
@@ -201,7 +245,7 @@ dat$hot_day<- as.factor(cut(dat$Temp_c,c(0,29.9999,40), labels=c(0,1)))
 coastal_dat<-filter(dat,Region=="Coastal")
 pied_dat<-filter(dat,Region=="Piedmont")
 
-tbl<-table(coastal_dat$Category, coastal_dat$hot_day)
+tbl<-table(pied_dat$Category, pied_dat$hot_day)
 chisq.test(tbl)
 
 ########
@@ -253,7 +297,7 @@ coastal_dat<-filter(dat_two,Region=="Coastal")
 pied_dat<-filter(dat_two,Region=="Piedmont")
 
 #wide to long conversion
-dat_test<-gather(pied_dat, scene, measure, 
+dat_test<-gather(coastal_dat, scene, measure, 
                  Natural:Observed, factor_key = T)
 
 t.test(dat_test$measure ~ dat_test$scene, paired=T)
@@ -315,20 +359,7 @@ ggsave("/work/jessebell/puvvula/fig_two.tiff",
 ###########################
 #Figure.3
 dat_three<- read_csv("/work/jessebell/puvvula/fig_three.csv")
-
-#comparing hot days
 dat_three$temp_c <- ((dat_three$Max_temp - 32) * 0.5555556)
-dat_three$hot_day<- as.factor(cut(dat_three$temp_c,c(0,29.99,40), labels=c(0,1)))
-
-coastal_dat<-filter(dat_three,region=="Coastal")
-pied_dat<-filter(dat_three,region=="Piedmont")
-
-tbl<-table(coastal_dat$RCP, coastal_dat$hot_day)
-chisq.test(tbl)
-
-tbl<-table(pied_dat$Time_period, pied_dat$hot_day)
-chisq.test(tbl)
-
 
 ################
 ggplot(dat_three, aes(Time_period, pred_ER, group=Time_period)) +
