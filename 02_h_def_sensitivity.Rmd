@@ -126,30 +126,31 @@ library(tidyverse)
 #res<- read_csv("/work/jessebell/puvvula/h_def_adjusted.csv")
 
 res<- read_csv("/work/jessebell/puvvula/h_def_adjusted_rh.csv")
+res<-filter(res, Threshold != "Monthly")
 cbbPalette <- c("#D55E00", "#0072B2", "#009E73", "#E69F00")
 
 res$Region<-factor(res$Region, levels = c("Coastal", "Piedmont"))
 
 res$meas<-as.factor(res$meas)
 #levels(res$metric)
-res$Metric<- factor(res$meas, levels = c("Mean", 
+res$Heat_metric<- factor(res$meas, levels = c("Mean", 
                                            "Maximum",
                                            "Minimum",
                                            "Maximum AT"))
                                            
-res$Threshold_type<- factor(res$Threshold, levels = c("Seasonal", "Monthly", "Absolute"))
+res$Threshold_type<- factor(res$th_new, levels = c("Relative",  "Absolute"))
 
-res$order<-factor(res$order, levels = c(1:110))
+#res$order<-factor(res$order, levels = c(1:110))
 
 
-ggplot(res, aes(x = as.factor(order), y = irr, ymin = lcl, ymax = ucl,
-                shape=Region, linetype=Threshold_type)) + 
-  geom_pointrange(aes(col = Metric), 
-                  position=position_dodge(width=1.5),size = 0.5) +
-  ylab("Incidence rate ratio [95% CI]") +
-  scale_y_continuous(breaks = seq(-1, 5, 1),limits=c(-1, 5))+
+ggplot(res, aes(x = as.factor(Heat_wave_definition), y = irr, ymin = lcl, ymax = ucl,
+                shape=Threshold_type)) + 
+  geom_pointrange(aes(col = Heat_metric), 
+                  position=position_dodge(width=1.8),size = 0.8) +
+  ylab("Rate ratio [95% CI]") +
+  scale_y_continuous(breaks = seq(-1, 4, 1),limits=c(-1, 4))+
   geom_hline(aes(yintercept = 1)) + 
-  scale_colour_manual(values=cbbPalette) + 
+  scale_colour_manual(values=cbbPalette) +
   ggtitle("")+
   xlab("Heat wave definitions")+
   theme_bw()+
@@ -160,19 +161,29 @@ ggplot(res, aes(x = as.factor(order), y = irr, ymin = lcl, ymax = ucl,
         axis.line = element_line(colour = "black"),
         plot.title = element_text(hjust = 0.5),
         text=element_text(size=12,  family="Arial Black"),
-        axis.text = element_text(size = 8, family="Arial Black"),
-        axis.text.x = element_text(angle = 90, hjust = 0.5),
-        legend.text.align = 0,
-        strip.text=element_text(size=5.5),
+        axis.text = element_text(size = 12, family="Arial Black"),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        strip.text.x=element_text(size=10,angle=90),
+        strip.text.y = element_text(size=12),
         strip.placement = "outside",
-        legend.box.just = "right",
-        legend.spacing = unit(0, "cm"),
-        legend.position = c(0.87,0.95),
-        legend.box = "horizontal")+
-  facet_grid(.~Heat_wave_definition, scales = "free", switch = "x", space = "free_x")
+        strip.background = element_rect(fill=NULL, colour = NULL),
+        legend.position="bottom",
+        legend.justification="left",
+        legend.box="vertical",
+        legend.box.just="left",
+        legend.margin=margin(-5,0,0,0)
+        #legend.text.align = 0,
+        #legend.box.just = "right",
+        #legend.spacing = unit(0, "cm"),
+        #legend.position = c(0.87,0.95),
+        #legend.box = "horizontal"
+        )+
+  facet_grid(Region~Heat_wave_definition, scales = "free", switch = "x", space = "free_x")
 
-ggsave("/work/jessebell/puvvula/h_def_adj.tiff", 
-       width = 18,height = 8)
+ggsave("/work/jessebell/puvvula/h_def_adj2.tiff", 
+       width = 8,height = 6,
+       dpi=300)
 ```
 
 
@@ -217,10 +228,10 @@ df$hw<- factor(as.numeric(as.factor(!df$shw_15):as.factor(!df$NWS_HW)))
 df$tmax_c<- ((df$tmax - 32) * 0.5555556)
 
 df$Heat_wave <- recode(df$hw,
-                       `1`="SWH_15_HW/NWS_HW",
-                       `2`="SWH_15_HW/NWS_NHW",
-                       `3`="SWH_15_NHW/NWS_HW",
-                       `4`="SWH_15_NHW/NWS_NHW")
+                       `1`="HW_15_HW/NWS_HW",
+                       `2`="HW_15_HW/NWS_NHW",
+                       `3`="HW_15_NHW/NWS_HW",
+                       `4`="HW_15_NHW/NWS_NHW")
 
 cbbPalette <- c("#D55E00", "#0072B2", "#E69F00")
 ggplot(df, aes(x=tmax_c, y=imp_rate, color=Heat_wave))+
@@ -249,7 +260,8 @@ ggplot(df, aes(x=tmax_c, y=imp_rate, color=Heat_wave))+
         legend.box = "horizontal")+ 
   guides(colour = guide_legend(override.aes = list(size=8)))
 ggsave("/work/jessebell/puvvula/h_def_comp_coas111.tiff", 
-       width = 8,height = 6)
+       width = 8,height = 6,
+       dpi=300)
 
 ###############
 ###############
@@ -261,21 +273,21 @@ df$hw<- factor(as.numeric(as.factor(!df$shw_07):as.factor(!df$NWS_HW)))
 #heat wave levels: 
 #1 = hw=1 & NWS=1 || 2 = hw=1 & NWS=0 || 3 = hw=0 & NWS=1 || 4 = hw=0 & NWS=0
 
-df$tmin_c<- ((df$tavg - 32) * 0.5555556)
+df$tavg_c<- ((df$tavg - 32) * 0.5555556)
 
 df$Heat_wave <- recode(df$hw,
-                       `1`="SWH_07_HW/NWS_HW",
-                       `2`="SWH_07_HW/NWS_NHW",
-                       `3`="SWH_07_NHW/NWS_HW",
-                       `4`="SWH_07_NHW/NWS_NHW")
+                       `1`="HW_07_HW/NWS_HW",
+                       `2`="HW_07_HW/NWS_NHW",
+                       `3`="HW_07_NHW/NWS_HW",
+                       `4`="HW_07_NHW/NWS_NHW")
 
 cbbPalette <- c("#D55E00", "#0072B2", "#E69F00")
-ggplot(df, aes(x=tmin_c, y=imp_rate, color=Heat_wave))+
+ggplot(df, aes(x=tavg_c, y=imp_rate, color=Heat_wave))+
   geom_point(size=1.8)+
   scale_colour_manual(values=cbbPalette)+
-  labs(x="Daily maximum temperature (°C)", 
+  labs(x="Daily mean temperature (°C)", 
        y="Rate of HRI Morbidity (per 100,000)")+
-  scale_x_continuous(breaks = seq(20, 32, 2),limits=c(20,32))+
+  scale_x_continuous(breaks = seq(20, 31, 2),limits=c(20,31))+
   scale_y_continuous(breaks = seq(0, 2, 0.5),limits=c(0,2))+
   theme_bw()+
   theme(axis.line = element_line(colour = "black"))+
@@ -297,6 +309,7 @@ ggplot(df, aes(x=tmin_c, y=imp_rate, color=Heat_wave))+
   guides(colour = guide_legend(override.aes = list(size=8)))
 
 ggsave("/work/jessebell/puvvula/h_def_comp_pied222.tiff", 
-       width = 8,height = 6)
+       width = 8,height = 6,
+       dpi=300)
 ```
 
