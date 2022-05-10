@@ -284,6 +284,9 @@ df$Heat_wave <- recode(df$hw,
 cbbPalette <- c("#D55E00", "#0072B2", "#E69F00")
 ggplot(df, aes(x=tavg_c, y=imp_rate, color=Heat_wave))+
   geom_point(size=1.8)+
+    geom_smooth(method = lm, aes(color = Heat_wave),
+              formula = 'y~x',
+              se=F)+
   scale_colour_manual(values=cbbPalette)+
   labs(x="Daily mean temperature (°C)", 
        y="Rate of HRI Morbidity (per 100,000)")+
