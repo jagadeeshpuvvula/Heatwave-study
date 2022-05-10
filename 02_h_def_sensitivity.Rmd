@@ -215,6 +215,9 @@ mcnemar.test(dat_w$shw_07_Piedmont, dat_w$NWS_HW_Piedmont)
 
 ```{r}
 #figure 2
+library(tidyverse)
+library(ggpmisc)
+
 dat<- read_csv("/work/jessebell/puvvula/h_def_2021nov.csv") %>% select("date", "Region", "tmax", "tavg","shw_07", "shw_15", "NWS_HW","imp_rate")
 
 
@@ -233,9 +236,12 @@ df$Heat_wave <- recode(df$hw,
                        `3`="HW_15_NHW/NWS_HW",
                        `4`="HW_15_NHW/NWS_NHW")
 
+my.formula<- imp_rate~tmax_c
+
 cbbPalette <- c("#D55E00", "#0072B2", "#E69F00")
 ggplot(df, aes(x=tmax_c, y=imp_rate, color=Heat_wave))+
   geom_point(size=1.8)+
+    geom_smooth(method = lm, aes(color = Heat_wave),formula = 'y~x',se=F)+
   scale_colour_manual(values=cbbPalette)+
   labs(x="Daily maximum temperature (°C)", 
        y="Rate of HRI Morbidity (per 100,000)")+
