@@ -28,7 +28,7 @@ coastal<-read_csv ("/work/jessebell/puvvula/pied_octf.csv")
 skim(dat)
 
 ###### DATA FORMATTING ######################
-coastal$date <- as.Date(coastal$Date, format = "%m/%d/%Y")
+coastal$date <- as.Date(coastal$date, format = "%m/%d/%Y")
 coastal$month<- as.factor(month(coastal$date))
 coastal$year<- as.factor(format(coastal$date, '%Y'))
 coastal$dow <- wday(as.Date(coastal$date, format = "%m/%d/%Y"))
@@ -38,7 +38,7 @@ coastal$wDay <- factor((weekdays(coastal$date) %in% weekdays1),
 coastal$temp_c <- ((coastal$tmax - 32) * 0.5555556)
 
 
-coastal$Steadman_HI <- heat.index(t = coastal$tmax,dp = coastal$dpt,
+coastal$Steadman_HI <- heat.index(t = coastal$tmax,dp = coastal$dewpoint,
                                   temperature.metric = "fahrenheit")
 # US NWS HI
 coastal$NWS_HI<- heat.index.algorithm(t=coastal$tmax, rh=coastal$RH)
@@ -97,10 +97,13 @@ summary(m1)
 m1$aic
 gam.check(m1)
 
-m2<- gam(imp_rate ~ s(temp_c,k=5, bs='cr')+wDay+month+year,
+m2<- gam(imp_rate ~ s(app_temp,k=5, bs='cr'),
          family=Gamma(link = log),
          method = "GCV.Cp",
-         data=piedmont)
+         data=coastal)
+
+summary(m2)
+m2$aic
 
 anova(m1, m2, test = "Chisq")
 plot.gam(m1)
