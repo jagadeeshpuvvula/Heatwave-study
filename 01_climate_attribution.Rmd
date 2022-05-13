@@ -329,10 +329,10 @@ dat_two$anomaly<- ((dat_two$Observed-dat_two$Natural)/
 #negative value - percent decrease
 
 dat_two %>% 
-  group_by(Region) %>% 
-  summarize(q1 = quantile(anomaly, 0.25),
-            q2 = quantile(anomaly, 0.50),
-            q3 = quantile(anomaly, 0.75))
+  group_by(Region, Month, Year) %>% 
+  summarize(anomaly_median = quantile(anomaly, 0.50),
+            anomaly_LL = quantile(anomaly, 0.25),
+            anomaly_UL = quantile(anomaly, 0.75))
 
 
 ggplot(dat_two, aes(Year, anomaly)) +
