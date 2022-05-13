@@ -17,9 +17,10 @@ library(mgcv)
 library(lubridate)
 library(corrplot)
 library(skimr)
+library(weathermetrics)
 
 coastal <- read_csv ("/work/jessebell/puvvula/coastal_octf.csv")
-piedmont<-read_csv ("/work/jessebell/puvvula/coastal_octf.csv")
+coastal<-read_csv ("/work/jessebell/puvvula/pied_octf.csv")
 
 #filter by region for analysis
 
@@ -27,7 +28,7 @@ piedmont<-read_csv ("/work/jessebell/puvvula/coastal_octf.csv")
 skim(dat)
 
 ###### DATA FORMATTING ######################
-coastal$date <- as.Date(coastal$date, format = "%m/%d/%Y")
+coastal$date <- as.Date(coastal$Date, format = "%m/%d/%Y")
 coastal$month<- as.factor(month(coastal$date))
 coastal$year<- as.factor(format(coastal$date, '%Y'))
 coastal$dow <- wday(as.Date(coastal$date, format = "%m/%d/%Y"))
@@ -35,6 +36,12 @@ weekdays1 <- c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')
 coastal$wDay <- factor((weekdays(coastal$date) %in% weekdays1), 
                        levels=c(FALSE, TRUE), labels=c('weekend', 'weekday'))
 coastal$temp_c <- ((coastal$tmax - 32) * 0.5555556)
+
+
+coastal$Steadman_HI <- heat.index(t = coastal$tmax,dp = coastal$dpt,
+                                  temperature.metric = "fahrenheit")
+# US NWS HI
+coastal$NWS_HI<- heat.index.algorithm(t=coastal$tmax, rh=coastal$RH)
 ```
 
 ```{r, echo=FALSE}
@@ -81,7 +88,7 @@ corrplot(M, method="color", col=col(200),
 ```{r, echo=FALSE}
 # GAM - Model building and comparision
 
-m1<- gam(imp_rate ~ s(temp_c,k=4, bs='cr')+wDay+month+year,
+m1<- gam(imp_rate ~ s(max_appt,k=5, bs='cr')+wDay+month+year,
          family=Gamma(link = log),
          method = "GCV.Cp",
          data=coastal)
