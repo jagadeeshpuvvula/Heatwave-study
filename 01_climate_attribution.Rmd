@@ -272,16 +272,17 @@ ggplot(dat, aes(x=Temp_c, colour=Category, linetype=Category))+
   theme(axis.line = element_line(colour = "black"))+
   theme_bw()+
   theme(legend.position='bottom')+
-  theme(text=element_text(size=12, family = "Helvetica"), 
-        axis.text=element_text(size=10, family = "Helvetica"), 
-        axis.title=element_text(size=12, family = "Helvetica"), 
-        plot.title=element_text(size=12, family = "Helvetica"), 
-        legend.text=element_text(size=12, family = "Helvetica"), 
-        legend.title=element_blank()+
-  strip.text.y = element_blank())
+  theme(text=element_text(size=12), 
+        axis.text=element_text(size=12), 
+        axis.title=element_text(size=12), 
+        plot.title=element_text(size=12), 
+        legend.text=element_text(size=12),
+        strip.text=element_text(size=12),
+        legend.title=element_blank())
 
 ggsave("fig_one.tiff", 
-       width = 4,height = 9)
+       width = 6,height = 6,
+       dpi=300)
 
 #Remove facet label        
 #strip.text.y = element_blank())
@@ -358,7 +359,8 @@ ggplot(dat_two, aes(Year, anomaly)) +
     legend.title=element_blank())
 
 ggsave("/work/jessebell/puvvula/fig_two.tiff", 
-       width = 6,height = 6)
+       width = 6,height = 6,
+       dpi=300)
 ```
 
 
@@ -433,15 +435,17 @@ ggplot(x, aes(x=temp_c, colour=RCP, linetype = region))+
   theme(
     legend.position='bottom',
     axis.line = element_line(colour = "black"),
-    text=element_text(size=12, family = "Helvetica"),
-    axis.text=element_text(size=10, family = "Helvetica"),
-    axis.title=element_text(size=12, family = "Helvetica"),
-    plot.title=element_text(size=12, family = "Helvetica"),
-    legend.text=element_text(size=12, family = "Helvetica"),
+    text=element_text(size=12),
+    axis.text=element_text(size=12),
+    axis.title=element_text(size=12),
+    plot.title=element_text(size=12),
+    legend.text=element_text(size=12),
+    strip.text = element_text(size=12),
     legend.title=element_blank())
   
 ggsave("/work/jessebell/puvvula/sup_seven.tiff", 
-       width = 10,height = 10)
+       width = 10,height = 10,
+       dpi=300)
 
 
   
@@ -501,8 +505,10 @@ plot(pred3.temp, xlab="Temperature (°C)", zlab="RR", theta=200, phi=40,
 
 #relative risk | Temperature | lag
 plot(pred3.temp, "contour", xlab="Temperature", key.title=title("RR"),
-     plot.title=title("Contour plot",
-                      xlab="Temperature (°C)",ylab="Lag"))
+     plot.title=title("",
+                      xlab="Temperature (°C)",
+                      ylab="Lag"))
+
 
 #what happens at different lags and temp values [change var=c() for temp | lag=c() for lag days] 
 plot(pred3.temp, "slices", var=c(32,35), lag=c(0,5), col=4,
