@@ -4,4 +4,4 @@ Code to reproduce results from
 2. Puvvula, J., Abadi, A., Conlon, K., Rennie, J., Jones, H., & Bell, J. E. Evaluating the sensitivity of heat wave definitions among North Carolina physiographic regions. Preprints, 2022, 2022020260. https://doi.org/doi:10.20944/preprints202207.0260.v1
 
 
-Cite: [![DOI](https://zenodo.org/badge/298341245.svg)](https://zenodo.org/badge/latestdoi/298341245)
+Cite code: [![DOI](https://zenodo.org/badge/298341245.svg)](https://zenodo.org/badge/latestdoi/298341245)
